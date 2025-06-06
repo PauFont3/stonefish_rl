@@ -14,10 +14,10 @@
 
 
 // Constructor de la classe StonefishRL
-StonefishRL::StonefishRL(const std::string& path) 
-: sf::SimulationManager(500.0), //Frequenca simulacio en Hz
-  scenePath(path) { 
-    std::cout << "[INIT] StonefishRL created with scene: " << path << std::endl;
+StonefishRL::StonefishRL(double frequency) 
+    : sf::SimulationManager(frequency) //Frequencia simulacio en Hz
+{ 
+    std::cout << "[INIT] StonefishRL created with scene: " << scenePath << std::endl;
 }   
 
 // Destructor
@@ -55,7 +55,7 @@ StonefishRL::ObsData StonefishRL::GetObservations() {
     for(auto const& [name, sensor] : obs_sensors_) 
     {
         // Falta controlar errors del nullptr per exemple
-        if(sf::ScalarSensor* scalarSensor = dynamic_cast<sf::ScalarSensor*>(sensor) != nullptr){
+        if(auto* scalarSensor = dynamic_cast<sf::ScalarSensor*>(sensor)){
             
             // Agafar la ultima mostra del ScalarSensor
             sf::Sample lastSample = scalarSensor->getLastSample();
@@ -87,16 +87,45 @@ StonefishRL::ObsData StonefishRL::GetObservations() {
 
 void StonefishRL::BuildScenario() {
 
-
     std::cout << "[INFO] Building scenario from: " << scenePath << std::endl;
 
     sf::ScenarioParser parser(this);
+    
+    if (parser.Parse("minimal_scene.xml")) 
+    {
 
+        sf::Robot* robot;
+        unsigned int id = 0;
+        while((robot = getRobot(id++)) != nullptr){
+            std::cout << "Num robots: " << id << std::endl;
+        }   
+
+        std::cout << "[INFO] Scenario loaded succesfully.\n";
+    } 
+    else 
+    {
+        std::cerr << "[ERROR] Error charging the scenario: " << scenePath << "\n";
+        for (const auto& msg : parser.getLog()) {
+            std::cerr << "[ScenarioParser] Mensaje en log del parser.\n";
+        }
+    }
+
+
+/*    sf::ScenarioParser parser(this);
+    bool success = parser.Parse(scenePath);
+
+
+    if(!success)
+        std::cerr << "Failed to parse scenario: " << scenePath << std::endl;
+    
+    
+   
+    return result;
+ */   
+
+
+    /*
     if(parser.Parse(scenePath)){
-
-        // Netejar tot, per evitar duplicats (Potser no cal)
-        actuators.clear();
-        obsSensors.clear();
 
 
         sf::Sensor* sensor;
@@ -119,5 +148,6 @@ void StonefishRL::BuildScenario() {
     else {
         std::cout << "La funcio 'Parse(scenePath)' no ha funcionat be" << std::endl;
     }
+        */
     
 }

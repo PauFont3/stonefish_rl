@@ -5,6 +5,9 @@
 #include <Stonefish/core/GraphicalSimulationApp.h>
 #include <Stonefish/core/SimulationApp.h>
 #include <Stonefish/core/SimulationManager.h>
+#include <Stonefish/sensors/scalar/RotaryEncoder.h>
+#include <Stonefish/actuators/Motor.h>
+#include <Stonefish/sensors/Sample.h>
 
 
 int main(int argc, char **argv) {
@@ -15,40 +18,32 @@ int main(int argc, char **argv) {
 
     StonefishRL sim("../scenes/minimal_scene.xml");
 
-    if(sim.StartSimulation()){
+    sim.StartSimulation()
 
         std::cout << "Simulation Running, entering to the loop.\n";
         
-        for (int i = 0; i < 500; i++) {
-
-            sim.Step(0.01);
-
-            StonefishRL::ObsData observations = sim.GetObservations();
-
-            // Mostrar observacions (Nomes per la fase de test)
-            for (const auto& pair : observations.num_observations) {
-                std::cout << "Observed sensor '" << pair.first << "': ";
-                for (float val : pair.second) {
-                    std::cout << val << " ";
-                }
-                std::cout << "\n";
-            }
-
-        }
-
         std::cout << "Simulation finished.\n";
     }
-    else 
-        std::cout << "The function 'StartSimulation' is not working.\n"; 
-    
 
     return 0;
-
 */
 
+    double frequency = 1000.0;
+
     sf::RenderSettings r;
-    sf::HelperSettings s;
+    sf::HelperSettings h;
+
+    StonefishRL* simulationManager = new StonefishRL(frequency);
+
+    sf::GraphicalSimulationApp app("DEMO STONEFISH RL", "../scenes/minimal_learning.xml", r, h, simulationManager);
+    
+    app.Run(false, false, sf::Scalar(0.1));
 
     return 0;
+
+    // Clean-up
+    //int status {0};
+    //SDL_WaitThread(learningThread, &status);
+    //return status;
 
 }
