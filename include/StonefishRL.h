@@ -22,7 +22,7 @@ public:
     };
 
     // Constructor
-    StonefishRL(const std::string& path);
+    StonefishRL(double frequency);
 
     // Destructor
     ~StonefishRL(); 
@@ -33,8 +33,11 @@ public:
     void ApplyCommands(const CommandData& cmds);
     ObsData GetObservations();
 
+    
+protected:
     // Override del mètode de BuildScenario de sf::SimulationManager
     void BuildScenario() override;
+
 
 private:
     std::string scenePath;
