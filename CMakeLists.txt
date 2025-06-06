@@ -8,7 +8,7 @@ find_package(Stonefish REQUIRED 1.5.0)
 
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/../stonefish/Library/include
+    #${CMAKE_SOURCE_DIR}/../stonefish/Library/include
     ${CMAKE_SOURCE_DIR}/include
 )
 
@@ -16,6 +16,10 @@ add_executable(StonefishRLTest
    src/main.cpp
    src/StonefishRL.cpp
 )
+
+
+file(COPY ${CMAKE_SOURCE_DIR}/scenes/minimal_scene.xml DESTINATION ${CMAKE_BINARY_DIR})
+
 
 # Link with Stonefish library
 target_link_libraries(StonefishRLTest
