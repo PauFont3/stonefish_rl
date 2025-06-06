@@ -34,7 +34,7 @@
         <static name="Ball" type="sphere">
             <dimensions radius="0.5"/>
             <material name="Steel"/>
-            <look name="Yellow"/>
+            <look name="Green"/>
             <world_transform xyz="2.0 0.0 5.0" rpy="0.0 0.0 0.0"/>
         </static>
  

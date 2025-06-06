@@ -19,14 +19,14 @@
 
   <robot name="TestArm" fixed="false" self_collisions="false">
     <base_link name="base" type="box" physics="submerged" buoyant="true">
-      <dimensions xyz="0.2 0.2 0.2"/>
+      <dimensions xyz="2 2 2"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <material name="steel"/>
       <look name="gray"/>
     </base_link>
 
     <link name="arm" type="cylinder" physics="submerged" buoyant="true">
-      <dimensions radius="0.05" height="0.3"/>
+      <dimensions radius="1" height="1.5"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <material name="steel"/>
       <look name="green"/>
