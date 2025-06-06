@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<scenario>
+  <environment>
+    <ned latitude="20.0" longitude="50.0"/>
+		<ocean />
+  </environment>
+
+  <materials>
+    <material name="steel" density="7800" restitution="0.5"/>
+    <friction_table>
+      <friction material1="steel" material2="steel" static="0.5" dynamic="0.3"/>
+    </friction_table>
+  </materials>
+
+  <looks>
+    <look name="gray" color="0.5 0.5 0.5" roughness="0.2" metalness="0.3"/>
+    <look name="green" color="0.0 1.0 0.0" roughness="0.2" metalness="0.3"/>
+  </looks>
+
+  <robot name="TestArm" fixed="false" self_collisions="false">
+    <base_link name="base" type="box" physics="submerged" buoyant="true">
+      <dimensions xyz="0.2 0.2 0.2"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="steel"/>
+      <look name="gray"/>
+    </base_link>
+
+    <link name="arm" type="cylinder" physics="submerged" buoyant="true">
+      <dimensions radius="0.05" height="0.3"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="steel"/>
+      <look name="green"/>
+    </link>
+
+    <joint name="joint1" type="revolute">
+      <parent name="base"/>
+      <child name="arm"/>
+      <origin xyz="0 0.1 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limits min="-1.57" max="1.57"/>
+    </joint>
+
+    <actuator name="servo_joint1" type="servo">
+      <joint name="joint1"/>
+      <controller position_gain="1.0" velocity_gain="0.2" max_torque="5.0"/>
+    </actuator>
+
+    <sensor name="imu_sensor" type="imu" rate="20">
+      <link name="base"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <history samples="100"/>
+    </sensor>
+
+    <world_transform xyz="0 0 0" rpy="0 0 0"/>
+  </robot>
+</scenario>
