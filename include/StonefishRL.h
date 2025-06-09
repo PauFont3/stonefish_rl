@@ -22,7 +22,7 @@ public:
     };
 
     // Constructor
-    StonefishRL(double frequency);
+    StonefishRL(double frequency, const std::string& path);
 
     // Destructor
     ~StonefishRL(); 
