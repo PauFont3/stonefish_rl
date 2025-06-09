@@ -1,56 +1,103 @@
 <?xml version="1.0"?>
 <scenario>
-  <environment>
-    <ned latitude="20.0" longitude="50.0"/>
+	<environment>
+		<ned latitude="20.0" longitude="50.0"/>
 		<ocean />
-  </environment>
+		<atmosphere>
+			<sun azimuth="20.0" elevation="30.0"/>
+		</atmosphere>
+	</environment>
 
-  <materials>
-    <material name="steel" density="7800" restitution="0.5"/>
-    <friction_table>
-      <friction material1="steel" material2="steel" static="0.5" dynamic="0.3"/>
-    </friction_table>
-  </materials>
+	<materials>
+		<material name="concrete" density="800.0" restitution="0.7"/>
+		<material name="steel" density="7980.0" restitution="0.9"/>
+		<friction_table>
+			<friction material1="concrete" material2="concrete" static="0.9" dynamic="0.8"/>
+			<friction material1="steel" material2="steel" static="0.5" dynamic="0.2"/>
+			<friction material1="concrete" material2="steel" static="0.7" dynamic="0.5"/>
+		</friction_table>
+	</materials>
 
-  <looks>
-    <look name="gray" color="0.5 0.5 0.5" roughness="0.2" metalness="0.3"/>
-    <look name="green" color="0.0 1.0 0.0" roughness="0.2" metalness="0.3"/>
-  </looks>
+	<looks>
+    	<look name="Yellow" rgb="1.0 0.9 0.0" roughness="0.3"/>
+    	<look name="Gray" gray="0.3" roughness="0.4" metalness="0.5"/>
+	</looks>
 
-  <robot name="TestArm" fixed="false" self_collisions="false">
-    <base_link name="base" type="box" physics="submerged" buoyant="true">
-      <dimensions xyz="2 2 2"/>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <material name="steel"/>
-      <look name="gray"/>
-    </base_link>
+<!-- Quadrat Groc dreta -->
+	<static name="Box1" type="box">
+		<dimensions xyz="1 1 1"/>
+		<material name="concrete"/>
+		<look name="Yellow"/>
+		<world_transform xyz="5.0 0.0 0.0" rpy="0.0 0.0 1.0"/>
+	</static>
 
-    <link name="arm" type="cylinder" physics="submerged" buoyant="true">
-      <dimensions radius="1" height="1.5"/>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <material name="steel"/>
-      <look name="green"/>
-    </link>
+<!-- Cilindre Groc Mig -->
+	<dynamic name="Cylinder1" type="cylinder" physics="submerged" buoyant="true">
+		<dimensions radius="1.0" height="1.2"/>
+		<origin xyz="-3.0 0.0 1" rpy="0 0 0"/>
+		<material name="steel"/>
+		<look name="Yellow"/>
+		<world_transform xyz="0.0 0.0 1.0" rpy="0.0 0.0 0.0"/>
+	</dynamic>
 
-    <joint name="joint1" type="revolute">
-      <parent name="base"/>
-      <child name="arm"/>
-      <origin xyz="0 0.1 0" rpy="0 0 0"/>
-      <axis xyz="0 0 1"/>
-      <limits min="-1.57" max="1.57"/>
-    </joint>
+<!-- Cilindre Gris Mig al cel -->
+	<robot name="Robot1" fixed="false" self_collisions="false">
+		<base_link name="L1" type="cylinder" physics="submerged" buoyant="true">
+			<dimensions radius="1.0" height="0.2"/>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<material name="concrete"/>
+			<look name="Yellow"/>
+		</base_link>
 
-    <actuator name="servo_joint1" type="servo">
-      <joint name="joint1"/>
-      <controller position_gain="1.0" velocity_gain="0.2" max_torque="5.0"/>
-    </actuator>
+		<link name="L2" type="cylinder" physics="submerged" buoyant="true">
+			<dimensions radius="1.0" height="0.2" thickness="0.01"/>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<material name="concrete"/>
+			<look name="Gray"/>
+		</link>
+		
+		<joint name="J1" type="revolute">
+			<parent name="L1"/>
+			<child name="L2"/>
+			<origin xyz="0 0.0 0" rpy="0 0 0"/>
+			<axis xyz="0 1 0"/>
+			<limits min="-1.0" max="1.0"/>
+		</joint>
 
-    <sensor name="imu_sensor" type="imu" rate="20">
-      <link name="base"/>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <history samples="100"/>
-    </sensor>
+		<sensor name="IMU" type="imu" rate="10">
+			<link name="L1"/>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<range angular_velocity="10"/>
+			<noise angle="0.1" angular_velocity="0.1"/>
+			<history samples="1000"/>
+		</sensor>
 
-    <world_transform xyz="0 0 0" rpy="0 0 0"/>
-  </robot>
+		<actuator name="Servo1" type="servo">
+			<joint name="J1"/>
+			<controller position_gain="1.0" velocity_gain="2.0" max_torque="100.0"/>
+		</actuator>
+
+<!-- 
+	PETA el programa al fer algun clic a la pantalla
+		<actuator name="Light1" type="light">
+			<link name="L1"/>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<specs cone_angle="20.0" illuminance="10000.0"/>
+			<color temperature="4300.0"/>		
+		</actuator>
+
+	PETA el programa directament al iniciarse
+		<actuator name="Thrust1" type="thruster">
+			<link name="L1"/>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<specs thrust_coeff="0.2" torque_coeff="0.02" max_rpm="1000.0"/>
+			<propeller diameter="0.2" right="true">
+				<mesh filename="propeller.obj" scale="1.0"/>
+				<material name="steel"/>
+				<look name="Yellow"/>
+			</propeller>
+		</actuator>
+-->
+		<world_transform xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+	</robot>
 </scenario>
