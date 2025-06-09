@@ -17,9 +17,8 @@ add_executable(StonefishRLTest
    src/StonefishRL.cpp
 )
 
-
-file(COPY ${CMAKE_SOURCE_DIR}/scenes/minimal_scene.xml DESTINATION ${CMAKE_BINARY_DIR})
-
+file(COPY ${CMAKE_SOURCE_DIR}/scenes/minimal_scene.xml DESTINATION ${CMAKE_BINARY_DIR}/scenes)
+file(COPY ${CMAKE_SOURCE_DIR}/scenes/minimal_learning.xml DESTINATION ${CMAKE_BINARY_DIR}/scenes)
 
 # Link with Stonefish library
 target_link_libraries(StonefishRLTest
