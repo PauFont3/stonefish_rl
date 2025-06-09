@@ -1,5 +1,6 @@
 #include "StonefishRL.h"
 #include <iostream>
+#include <string>
 
 #include <Stonefish/core/SimulationManager.h>
 #include <Stonefish/core/ScenarioParser.h> // Per carregar l'arxiu XML
@@ -14,9 +15,10 @@
 
 
 // Constructor de la classe StonefishRL
-StonefishRL::StonefishRL(double frequency) 
-    : sf::SimulationManager(frequency) //Frequencia simulacio en Hz
+StonefishRL::StonefishRL(double frequency, const std::string& path) 
+    : sf::SimulationManager(frequency), scenePath(path)
 { 
+    std::cout << "Constructor de StonefishRL" << std::endl;
     std::cout << "[INIT] StonefishRL created with scene: " << scenePath << std::endl;
 }   
 
@@ -65,7 +67,6 @@ StonefishRL::ObsData StonefishRL::GetObservations() {
             sensor_values.reserve(scalarSensor->getNumOfChannels());
 
             // Iterar sobre tots els canals del sensor i obtenir els seus valors
-            // "Unsigned int" pq aixi es com ho té en Patrykc
             for(unsigned int i = 0; i < scalarSensor->getNumOfChannels(); i++) 
             {
                 sensor_values.push_back(static_cast<float>(lastSample.getValue(i)));
@@ -90,64 +91,50 @@ void StonefishRL::BuildScenario() {
     std::cout << "[INFO] Building scenario from: " << scenePath << std::endl;
 
     sf::ScenarioParser parser(this);
-    
-    if (parser.Parse("minimal_scene.xml")) 
-    {
 
+    if (parser.Parse(scenePath)) 
+    {
+        std::cout << "Ha entrat al buildscenario" << std::endl;
+        /*
         sf::Robot* robot;
         unsigned int id = 0;
         while((robot = getRobot(id++)) != nullptr){
             std::cout << "Num robots: " << id << std::endl;
         }   
+        */
 
+        sf::Sensor* sensor_ptr;
+        unsigned int sensor_id = 0;
+        while((sensor_ptr = getSensor(sensor_id++)) != nullptr){
+            obs_sensors_[sensor_ptr->getName()] = sensor_ptr;
+        }  
+        std::cout << "Contingut del mapa de sensors:" << std::endl;
+        for (const auto& pair : obs_sensors_) {
+            std::cout << "Clau: '" << pair.first << "', punter: " << pair.second << std::endl;
+        }
+
+        
+        sf::Actuator* actuator_ptr;
+        unsigned int actuator_id = 0;
+        while((actuator_ptr = getActuator(actuator_id++)) != nullptr){
+            actuators_[actuator_ptr->getName()] = actuator_ptr;
+        }  
+        std::cout << "Contingut del mapa d'actuadors:" << std::endl;
+        for (const auto& pair : actuators_) {
+            std::cout << "Clau: '" << pair.first << "', punter: " << pair.second << std::endl;
+        }
+
+
+        
         std::cout << "[INFO] Scenario loaded succesfully.\n";
     } 
+    
     else 
     {
         std::cerr << "[ERROR] Error charging the scenario: " << scenePath << "\n";
         for (const auto& msg : parser.getLog()) {
-            std::cerr << "[ScenarioParser] Mensaje en log del parser.\n";
+            std::cerr << "[ScenarioParser Log] " << msg.text << "\n";
         }
     }
 
-
-/*    sf::ScenarioParser parser(this);
-    bool success = parser.Parse(scenePath);
-
-
-    if(!success)
-        std::cerr << "Failed to parse scenario: " << scenePath << std::endl;
-    
-    
-   
-    return result;
- */   
-
-
-    /*
-    if(parser.Parse(scenePath)){
-
-
-        sf::Sensor* sensor;
-        unsigned int id = 0;
-        while((sensor = getSensor(id++)) != nullptr){
-            obs_sensors_[sensor->getName()] = sensor;
-        }  
-
-        sf::Actuator* actuator;
-        id = 0;
-        while((sensor = getActuator(id++)) != nullptr){
-            actuators_[actuator->getName()] = actuator;
-        }  
-
-
-        std::cout << "[INFO] Found " << obs_sensors_.size() << " sensors and " << actuators_.size() << " actuators." << std::endl;
-        std::cout << "[INFO] Scene loaded successfully." << std::endl;
-    }
-
-    else {
-        std::cout << "La funcio 'Parse(scenePath)' no ha funcionat be" << std::endl;
-    }
-        */
-    
 }

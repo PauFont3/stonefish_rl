@@ -12,32 +12,23 @@
 
 int main(int argc, char **argv) {
 
- 
-/*
-    auto rSettings = sf::GraphicalSimulationApp::getRenderSettings(); // ???
-
-    StonefishRL sim("../scenes/minimal_scene.xml");
-
-    sim.StartSimulation()
-
-        std::cout << "Simulation Running, entering to the loop.\n";
-        
-        std::cout << "Simulation finished.\n";
-    }
-
-    return 0;
-*/
 
     double frequency = 1000.0;
-
+    std::string dataDirPath = "scenes/minimal_learning.xml";//"../scenes/minimal_learning.xml";
+    if (argc > 1) {
+        dataDirPath = argv[1]; // Permet carregar l'escena des d'un argument en la linea de comandes 
+    }
+    
     sf::RenderSettings r;
     sf::HelperSettings h;
 
-    StonefishRL* simulationManager = new StonefishRL(frequency);
-
-    sf::GraphicalSimulationApp app("DEMO STONEFISH RL", "../scenes/minimal_learning.xml", r, h, simulationManager);
+    StonefishRL* simulationManager = new StonefishRL(frequency, dataDirPath);
+    sf::GraphicalSimulationApp app("DEMO STONEFISH RL", dataDirPath, r, h, simulationManager);
     
-    app.Run(false, false, sf::Scalar(0.1));
+    //std::cout << sf::GetDataPath() << std::endl;
+    
+
+    app.Run(false, false, /*1.0/frequency/*/sf::Scalar(0.1));
 
     return 0;
 
