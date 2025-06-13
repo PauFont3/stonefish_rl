@@ -2,7 +2,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <cmath> // Per fer std::cos(..)
+#include <cmath>
 
 #include <Stonefish/core/GraphicalSimulationApp.h>
 #include <Stonefish/core/SimulationApp.h>
@@ -25,9 +25,30 @@ struct LearningThreadData
 };
 
 
+void printScalarObservations(const std::map<std::string, std::vector<float>>& obs) {
+    std::cout << " --- Scalar Observations ---" << std::endl;
+    if (obs.empty()) {
+        std::cout << "  No scalar sensors found or no new data." << std::endl;
+    }
+    for (const auto& pair : obs) {
+        std::cout << "  [Scalar Sensor] " << pair.first ;
+
+        // No se si es i=1 o i=0, pero si és i=0 mostra 2 valors.
+        // Si poso i=1 i <= pair.second.size() mostra 3 valors, el 3r valor sempre és 0.
+        for(unsigned int i = 0; i <= pair.second.size(); i++) {
+            std::cout << ": " << pair.second[i];
+        }
+        std::cout << std::endl;
+    }
+    std::cout << "-------------------------" << std::endl;
+}
+
+
 int learning(void* data) {
     sf::SimulationApp& simApp = static_cast<LearningThreadData*>(data)->sim;
     sf::SimulationManager* simManager = simApp.getSimulationManager();
+    StonefishRL* myManager = static_cast<StonefishRL*>(simManager);
+
 
     while (simApp.getState() == sf::SimulationState::NOT_READY)
     {
@@ -38,77 +59,50 @@ int learning(void* data) {
     simApp.StartSimulation();
     int contador = 0;
 
-    while(simApp.getState() != sf::SimulationState::FINISHED && contador < 10) 
+    while(simApp.getState() != sf::SimulationState::FINISHED || contador < 10) 
     {
+
+
+        StonefishRL::CommandData cmd;
+        cmd.commands["Robot/Servo"] = 0.5 * std::cos(simManager->getSimulationTime());
+        cmd.commands["Robot/Servo2"] = -0.5 * std::cos(simManager->getSimulationTime());
         
-        //simManager->StepSimulation(0.001); // Avançar 1ms
-        //std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Esperar 100ms per veure els resultats
+        myManager->ApplyCommands(cmd.commands);
 
-
-        sf::Servo* srv1 = (sf::Servo*)simManager->getActuator("Robot/Servo");
+    //  ----- APLICAR COMANDES ALS ACTUADORS ( ApplyCommands() ) -----
+    /*    sf::Servo* srv1 = (sf::Servo*)simManager->getActuator("Robot/Servo");
         srv1->setControlMode(sf::ServoControlMode::POSITION);
         float command1 = -0.5 * std::cos(simManager->getSimulationTime());
         srv1->setDesiredPosition(command1);
-        
         
         sf::Servo* srv2 = (sf::Servo*)simManager->getActuator("Robot/Servo2");
         srv2->setControlMode(sf::ServoControlMode::POSITION);
         float command2 = 0.5 * std::cos(simManager->getSimulationTime());
         srv2->setDesiredPosition(command2);
+        */
+    // -----------------------------------------------------------------
 
-    // ----- DIRIA QUE NO ESTA FENT RES (NO AFECTA A LA VELOCTAT) -----
-        srv1->setControlMode(sf::ServoControlMode::VELOCITY);
+    // ----- DIRIA QUE NO ESTÀ FENT RES (NO AFECTA A LA VELOCTAT) -----
+/*        srv1->setControlMode(sf::ServoControlMode::VELOCITY);
         srv1->setMaxVelocity(0.1f); 
         
         srv2->setControlMode(sf::ServoControlMode::VELOCITY);
         srv2->setMaxVelocity(100.0f);     
-    // ------------------------------------------------------------------
-     
+  */  // ------------------------------------------------------------------
 
         simApp.StepSimulation();
-        
     
-        std::cout << std::endl;
-        std::cout << "----------------  STARTING STEP: " << contador << "  ----------------" << std::endl; 
+        std::cout << std::endl << "----------------  STARTING STEP: " << contador << "  ----------------" << std::endl; 
+        std::cout << "------------------------------------------------------" << std::endl;
 
-        auto* enc1 = static_cast<sf::RotaryEncoder*>(simManager->getSensor("Robot/Encoder"));
-        if(enc1) {
-            double angle1 = enc1->getLastSample().getValue(0);
-            std::cout << "Encoder1 angle: " << angle1 << std::endl;
-        } 
-        else {
-            std::cout << "[ERROR] Encoder1 not found." << std::endl;
-        }
-
-        auto* enc2 = static_cast<sf::RotaryEncoder*>(simManager->getSensor("Robot/Encoder2"));
-        if(enc2) {
-            double angle2 = enc2->getLastSample().getValue(0);
-            std::cout << "Encoder2 angle: " << angle2 << std::endl;
-        } 
-        else {
-            std::cout << "[ERROR] Encoder2 not found." << std::endl;
-        }
-
-
-       
-        //static_cast<sf::Motor*>(simManager->getActuator("Robot/Motor"))->setIntensity(0.75);
-
-        //sf::Scalar command1 = btCos(angle1) * 15;
-        //sf::Scalar command2 = btCos(angle1) * 30;
-
-
-        
-
-        //static_cast<sf::Actuator*>(simManager->getActuator("Robot/Servo"))->setIntensity(command1); // Fa petar el programa
-        //static_cast<sf::Motor*>(simManager->getActuator("Motor"))->setIntensity(command1);
-        
-        
+        printScalarObservations(myManager->getScalarObservations());
         
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
         contador++;
+
         std::cout << "[INFO] Simulation time: " << simManager->getSimulationTime() << " seconds." << std::endl;
         std::cout << "[INFO] Step " << contador << " completed." << std::endl;
-        
     }
 
     return 0;

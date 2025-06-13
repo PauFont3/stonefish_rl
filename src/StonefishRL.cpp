@@ -58,10 +58,42 @@ void StonefishRL::Step(sf::Scalar ts) {
     std::cout << "[StonefishRL] StepSimulation OK";
 }
 
-void StonefishRL::ApplyCommands(const CommandData& cmds) {
+void StonefishRL::ApplyCommands(std::map<std::string, float> cmds) {
  
+    unsigned int id = 0;
+    sf::Actuator* actuator_ptr;
+    while((actuator_ptr = getActuator(id++)) != nullptr) {
+        sf::ActuatorType type = actuator_ptr->getType();
+        std::cout << "[INFO] Actuator type: " << static_cast<int>(type) << std::endl;
+    
+        switch (type) {
+
+            case sf::ActuatorType::SERVO:
+            {
+                sf::Servo* servo = dynamic_cast<sf::Servo*>(actuator_ptr);
+                if(servo){
+                    servo->setControlMode(sf::ServoControlMode::POSITION);
+                    std::cout << "[INFO] Servo actuator found: " << servo->getName() << std::endl;
+                    servo->setDesiredPosition(cmds[servo->getName()]);
+                    servo->
+                }
+                break;
+            }
+
+                            
+            default:
+                std::cout << "[WARN] Actuator type not supported.\n";
+                break;
+        
+        }
+    }
+
+
+
+
+/*
     for(auto const& [name, val] : cmds.commands) {
-        std::cout << "NOM ACTUADOR: " << name << ". Valors: " << val << "." << std::endl;
+        std::cout << "NOM ACTUADOR: " << name << ". Aplicant un canvi de posició a : " << val << "." << std::endl;
         
         auto iT = actuators_.find("Robot/Servo");
         
@@ -78,7 +110,7 @@ void StonefishRL::ApplyCommands(const CommandData& cmds) {
             servo->setDesiredPosition(9.5);
         }
     }   
-
+*/
 // DIU QUE NO TROBA ELS ACTUADORS
 /*    for(const auto& pair : cmds.commands) {
         const std::string& actuator_name = pair.first;
@@ -180,10 +212,6 @@ StonefishRL::ObsData StonefishRL::GetObservations() {
             }
          // ------------------------------------------------------------
        
-            if (scalar_sensor->getNumOfChannels() == 0) {
-                std::cerr << "[WARN] Sensor " << sensor_name << " has zero channels." << std::endl;
-                continue;
-            }
 
             if (sensor_values_.empty()) {
                 std::cerr << "[WARN] No observations catched! (Check if sensors are defined in XML)" << std::endl;
@@ -251,13 +279,13 @@ void StonefishRL::BuildScenario() {
     obs_sensors_.clear();
     actuators_.clear();
 
+
     sf::Sensor* sensor_ptr;
     unsigned int sensor_id = 0;
 
     while((sensor_ptr = getSensor(sensor_id++)) != nullptr) {
         obs_sensors_[sensor_ptr->getName()] = sensor_ptr;
     }  
-
     
     if(obs_sensors_.empty()) std::cout << "[WARN] No sensors registered in this scenario!" << std::endl;
     else {
@@ -265,10 +293,10 @@ void StonefishRL::BuildScenario() {
         for (const auto& pair : obs_sensors_) {
             std::cout << "  Clau: '" << pair.first 
                       << "\n        Valor UpdatedFrequency: " << pair.second->getUpdateFrequency() 
-                      << "\n        Valor Nom Sensor: " << pair.second->getName()
-                      << std::endl;
+                      << "\n        Valor Nom Sensor: " << pair.second->getName() << std::endl;
         }
     }
+
     
     sf::Actuator* actuator_ptr;
     unsigned int actuator_id = 0;
@@ -290,3 +318,47 @@ void StonefishRL::BuildScenario() {
     
     std::cout << "[INFO] Scenario loaded succesfully.\n";
 }
+
+
+std::map<std::string, std::vector<float>> StonefishRL::getScalarObservations() {
+
+    std::map<std::string, std::vector<float>> sensorData;
+    sf::Sensor* sensor_ptr;
+
+    unsigned int id = 0;
+    while((sensor_ptr = getSensor(id++)) != nullptr) 
+    {
+        if(!sensor_ptr->isNewDataAvailable()) {
+            std::cout << "[WARN] No new data available for sensor: " << sensor_ptr->getName() << std::endl;
+            continue;
+        }
+
+        if(sensor_ptr->getType() == sf::SensorType::JOINT) {
+
+            sf::ScalarSensor* scalar_sensor = dynamic_cast<sf::ScalarSensor*>(sensor_ptr);
+            
+            if(!scalar_sensor) continue;
+
+            sf::Sample lastSample = scalar_sensor->getLastSample();
+            std::vector<float> sensor_values;
+            sensor_values.reserve(scalar_sensor->getNumOfChannels());
+
+            for(unsigned int i = 0; i < scalar_sensor->getNumOfChannels(); i++) {
+                sensor_values.push_back(static_cast<float>(lastSample.getValue(i)));
+            }
+            sensorData[sensor_ptr->getName()] = std::move(sensor_values);
+        }
+
+        else if (sensor_ptr->getType() == sf::SensorType::VISION) 
+        {
+
+        }
+
+
+        sensor_ptr->MarkDataOld(); // Marcar dades com antigues per evitar duplicats
+    }
+
+    return sensorData;
+}
+
+
