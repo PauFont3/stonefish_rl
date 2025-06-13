@@ -66,14 +66,14 @@ void StonefishRL::ApplyCommands(const CommandData& cmds) {
         auto iT = actuators_.find("Robot/Servo");
         
         if(iT == actuators_.end()) {
-            std::cout << "[TESTS] Actuator name:" << name << " not registered" << std::endl;
+            std::cout << "[TESTS] Actuator name:" << name << " not found" << std::endl;
             //continue;
         }
 
         auto act = iT->second;
         if(act->getType() == sf::ActuatorType::SERVO){
             std::cout << "He entrat" << std::endl;
-            sf::Servo* servo = (sf::Servo*)(act);
+            sf::Servo* servo = static_cast<sf::Servo*>(act);
             servo->setControlMode(sf::ServoControlMode::POSITION);
             servo->setDesiredPosition(9.5);
         }
@@ -163,6 +163,7 @@ StonefishRL::ObsData StonefishRL::GetObservations() {
             //std::vector<float> sensor_values = scalar_sensor->getLastSample().getData();
             sensor_values_[sensor_name] = scalar_sensor->getLastSample().getData();
             std::cout << "Tamany del vector:" << sensor_values_[sensor_name].size() << std::endl;
+            std::cout << "Elements del mapa de sensors " << sensor_values_.size() << std::endl;
 
             for(unsigned int i = 0; i < sensor_values_[sensor_name].size(); i++) {
                 std::cout << "Valors del sensors: " << sensor_values_[sensor_name][i] << std::endl;
