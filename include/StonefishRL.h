@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
@@ -12,8 +13,17 @@ public:
 
     // Conté les dades d'observació numeriques
     struct ObsData {
-        std::map<std::string, std::vector<float>> num_observations;
-        // Si hem d'afegir observacions amb imatges aniran aqui.
+        //std::map<std::string, std::vector<double>> num_observations;
+        
+        // Estructura per les dades d'una imatge
+        struct ImageData {
+            std::vector<unsigned char> data; // Pixels raw
+            unsigned int width;
+            unsigned int height;
+            unsigned int channels;
+        };
+
+        std::map<std::string, ImageData> img_observations;
     };
 
     // Conté les comandes a aplicar
@@ -22,7 +32,7 @@ public:
     };
 
     // Constructor
-    StonefishRL(double frequency, const std::string& path);
+    StonefishRL(const std::string& path, double frequency);
 
     // Destructor
     ~StonefishRL(); 
@@ -33,7 +43,6 @@ public:
     void ApplyCommands(const CommandData& cmds);
     ObsData GetObservations();
 
-    
 protected:
     // Override del mètode de BuildScenario de sf::SimulationManager
     void BuildScenario() override;
@@ -45,5 +54,10 @@ private:
     //Guardar punters i actuadors pel seu nom
     std::map<std::string, sf::Sensor*> obs_sensors_;
     std::map<std::string, sf::Actuator*> actuators_;
+    
+    std::map<std::string, std::vector<double>> sensor_values_; // [nom sensor] -> [valors]
+
+    //sf::Robot* robot;
+    //std::vector<std::string> actuators;   
 };
 
