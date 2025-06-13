@@ -40,8 +40,9 @@ public:
     // Metodes per la interface de RL
     void Reset();
     void Step(double dt);
-    void ApplyCommands(const CommandData& cmds);
+    void ApplyCommands(std::map<std::string, float> cmds);
     ObsData GetObservations();
+    std::map<std::string, std::vector<float>> getScalarObservations();
 
 protected:
     // Override del mètode de BuildScenario de sf::SimulationManager
