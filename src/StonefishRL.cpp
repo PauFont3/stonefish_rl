@@ -43,6 +43,7 @@ StonefishRL::~StonefishRL() {
     // Stonefish ho hauríem d'eliminar aqui.
 }
 
+// NO UTILITZAT
 void StonefishRL::Reset() {
     sf::SimulationManager::RestartScenario();
     // RestartScenario ja conté:
@@ -53,6 +54,7 @@ void StonefishRL::Reset() {
     std::cout << "[StonefishRL] Scenario restarted OK\n";
 }
 
+// NO UTILITZAT
 void StonefishRL::Step(sf::Scalar ts) {
     sf::SimulationManager::StepSimulation(ts);
     std::cout << "[StonefishRL] StepSimulation OK";
@@ -62,20 +64,19 @@ void StonefishRL::ApplyCommands(std::map<std::string, float> cmds) {
  
     unsigned int id = 0;
     sf::Actuator* actuator_ptr;
+
     while((actuator_ptr = getActuator(id++)) != nullptr) {
-        sf::ActuatorType type = actuator_ptr->getType();
-        std::cout << "[INFO] Actuator type: " << static_cast<int>(type) << std::endl;
-    
-        switch (type) {
+        
+        switch (actuator_ptr->getType()) {
 
             case sf::ActuatorType::SERVO:
             {
                 sf::Servo* servo = dynamic_cast<sf::Servo*>(actuator_ptr);
                 if(servo){
-                    servo->setControlMode(sf::ServoControlMode::POSITION);
+                    servo->setControlMode(sf::ServoControlMode::VELOCITY);
                     std::cout << "[INFO] Servo actuator found: " << servo->getName() << std::endl;
-                    servo->setDesiredPosition(cmds[servo->getName()]);
-                    servo->
+                    std::cout << "[ApplyCommands] Target for " << servo->getName() << " = " << cmds[servo->getName()] << std::endl;
+                    servo->setDesiredVelocity(cmds[servo->getName()]);
                 }
                 break;
             }
@@ -87,8 +88,6 @@ void StonefishRL::ApplyCommands(std::map<std::string, float> cmds) {
         
         }
     }
-
-
 
 
 /*
@@ -267,14 +266,7 @@ void StonefishRL::BuildScenario() {
         return;
     }
 
-    std::cout << "Ha entrat al BuildScenario()" << std::endl;
-/*
-    sf::Robot* robot_ptr;
-    unsigned int id = 0;
-    while((robot_ptr = getRobot(id++)) != nullptr){
-        std::cout << "Nom robot: " << robot_ptr->getName() << std::endl;
-    }   
-*/  
+    std::cout << "Ha entrat al BuildScenario()" << std::endl; 
 
     obs_sensors_.clear();
     actuators_.clear();
@@ -348,12 +340,6 @@ std::map<std::string, std::vector<float>> StonefishRL::getScalarObservations() {
             }
             sensorData[sensor_ptr->getName()] = std::move(sensor_values);
         }
-
-        else if (sensor_ptr->getType() == sf::SensorType::VISION) 
-        {
-
-        }
-
 
         sensor_ptr->MarkDataOld(); // Marcar dades com antigues per evitar duplicats
     }

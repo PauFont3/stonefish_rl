@@ -33,11 +33,18 @@ void printScalarObservations(const std::map<std::string, std::vector<float>>& ob
     for (const auto& pair : obs) {
         std::cout << "  [Scalar Sensor] " << pair.first ;
 
-        // No se si es i=1 o i=0, pero si és i=0 mostra 2 valors.
-        // Si poso i=1 i <= pair.second.size() mostra 3 valors, el 3r valor sempre és 0.
-        for(unsigned int i = 0; i <= pair.second.size(); i++) {
-            std::cout << ": " << pair.second[i];
+        bool unitats_temps = false; // Canviar a true si per mostrar rad/s
+        for(unsigned int i = 0; i < pair.second.size(); i++) {
+            if(!unitats_temps){
+                std::cout << " :) " << pair.second[i] << " rad.  ";
+                unitats_temps = true;
+            }
+            else{
+                std::cout << " :) " << pair.second[i] << " rad/s";
+                unitats_temps = false;
+            }
         }
+
         std::cout << std::endl;
     }
     std::cout << "-------------------------" << std::endl;
@@ -48,7 +55,6 @@ int learning(void* data) {
     sf::SimulationApp& simApp = static_cast<LearningThreadData*>(data)->sim;
     sf::SimulationManager* simManager = simApp.getSimulationManager();
     StonefishRL* myManager = static_cast<StonefishRL*>(simManager);
-
 
     while (simApp.getState() == sf::SimulationState::NOT_READY)
     {
@@ -62,25 +68,11 @@ int learning(void* data) {
     while(simApp.getState() != sf::SimulationState::FINISHED || contador < 10) 
     {
 
-
         StonefishRL::CommandData cmd;
-        cmd.commands["Robot/Servo"] = 0.5 * std::cos(simManager->getSimulationTime());
-        cmd.commands["Robot/Servo2"] = -0.5 * std::cos(simManager->getSimulationTime());
+        cmd.commands["Robot/Servo"] = 10.2;// * std::cos(simManager->getSimulationTime());
+        cmd.commands["Robot/Servo2"] = -10.1;// * std::cos(simManager->getSimulationTime());
         
         myManager->ApplyCommands(cmd.commands);
-
-    //  ----- APLICAR COMANDES ALS ACTUADORS ( ApplyCommands() ) -----
-    /*    sf::Servo* srv1 = (sf::Servo*)simManager->getActuator("Robot/Servo");
-        srv1->setControlMode(sf::ServoControlMode::POSITION);
-        float command1 = -0.5 * std::cos(simManager->getSimulationTime());
-        srv1->setDesiredPosition(command1);
-        
-        sf::Servo* srv2 = (sf::Servo*)simManager->getActuator("Robot/Servo2");
-        srv2->setControlMode(sf::ServoControlMode::POSITION);
-        float command2 = 0.5 * std::cos(simManager->getSimulationTime());
-        srv2->setDesiredPosition(command2);
-        */
-    // -----------------------------------------------------------------
 
     // ----- DIRIA QUE NO ESTÀ FENT RES (NO AFECTA A LA VELOCTAT) -----
 /*        srv1->setControlMode(sf::ServoControlMode::VELOCITY);
@@ -97,7 +89,7 @@ int learning(void* data) {
 
         printScalarObservations(myManager->getScalarObservations());
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
         contador++;
 
@@ -115,7 +107,6 @@ int main(int argc, char **argv) {
     
     if (argc < 2) {
         std::cerr << "[ERROR] You may need 1 arguments at least." << std::endl;
-        std::cerr << "Utilitzat: " << argv[0] << " <Resources/type_scene/scene.xml>\n";
         return 1;
     }
 
@@ -215,7 +206,7 @@ int main(int argc, char **argv) {
     }
 */
     
-    app.Run(false, false, sf::Scalar(0.1));
+    app.Run(false, false, sf::Scalar(1/frequency));
     std::cout << "[INFO] Simulation finished." << std::endl;
 
     int status {0};
