@@ -4,27 +4,16 @@
 #include <string>
 #include <vector>
 #include <map>
+
 #include <Stonefish/core/SimulationManager.h>
-#include <Stonefish/actuators/Actuator.h> // Incloure per sf::Actuador*
-#include <Stonefish/sensors/Sensor.h> // Incloure per sf::Sensor*
+#include <Stonefish/actuators/Actuator.h>
+#include <Stonefish/sensors/Sensor.h> 
+
+#include <zmq.hpp> // Per la comunicació amb Python
  
+
 class StonefishRL : public sf::SimulationManager {
 public:
-
-    // Conté les dades d'observació numeriques
-    struct ObsData {
-        //std::map<std::string, std::vector<double>> num_observations;
-        
-        // Estructura per les dades d'una imatge
-        struct ImageData {
-            std::vector<unsigned char> data; // Pixels raw
-            unsigned int width;
-            unsigned int height;
-            unsigned int channels;
-        };
-
-        std::map<std::string, ImageData> img_observations;
-    };
 
     // Conté les comandes a aplicar
     struct CommandData {
@@ -39,10 +28,12 @@ public:
 
     // Metodes per la interface de RL
     void Reset();
-    void Step(double dt);
-    void ApplyCommands(std::map<std::string, float> cmds);
-    ObsData GetObservations();
+    void RecieveInstructions();
+    void SendObservations();
+    void ApplyCommands(const std::string &str_cmds);
     std::map<std::string, std::vector<float>> getScalarObservations();
+
+   CommandData ConvertStringToMap(std::string str);
 
 protected:
     // Override del mètode de BuildScenario de sf::SimulationManager
@@ -58,7 +49,8 @@ private:
     
     std::map<std::string, std::vector<double>> sensor_values_; // [nom sensor] -> [valors]
 
-    //sf::Robot* robot;
-    //std::vector<std::string> actuators;   
-};
+    void InitializeZMQ();
 
+    zmq::context_t context; // Context per ZeroMQ
+    zmq::socket_t socket; // Socket per ZeroMQ
+};
