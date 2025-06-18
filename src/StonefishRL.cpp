@@ -3,15 +3,14 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <cmath> // Per fer servir std::sin
 
 // Includes per SENSORS
-#include <Stonefish/sensors/Sensor.h> // Per la clase base Sensor i el getName()
-#include <Stonefish/sensors/Sample.h> // Per poder fer sf:Sample
-#include <Stonefish/sensors/ScalarSensor.h> // Per la clase base ScalarSensor i el getLastSample()
+#include <Stonefish/sensors/Sensor.h>
+#include <Stonefish/sensors/Sample.h> 
+#include <Stonefish/sensors/ScalarSensor.h> // Pel getLastSample()
 #include <Stonefish/sensors/VisionSensor.h>
-#include <Stonefish/sensors/scalar/IMU.h> // IMU es vectorial, pero esta en aquesta ruta
-#include <Stonefish/sensors/scalar/RotaryEncoder.h> // Per fer sf::RotaryEncoder
+#include <Stonefish/sensors/scalar/IMU.h> 
+#include <Stonefish/sensors/scalar/RotaryEncoder.h>
 #include <Stonefish/sensors/vision/Camera.h>
 
 // Includes per ACTUADORS
@@ -20,6 +19,7 @@
 #include <Stonefish/actuators/Actuator.h>
 
 #include <Stonefish/core/SimulationManager.h>
+#include <Stonefish/core/SimulationApp.h>
 #include <Stonefish/core/ScenarioParser.h> // Per carregar l'arxiu XML
 #include <Stonefish/StonefishCommon.h>
 
@@ -27,12 +27,17 @@
 
 // Constructor de la classe StonefishRL
 StonefishRL::StonefishRL(const std::string& path, double frequency)
-    : sf::SimulationManager(frequency), scenePath(path)
+    : sf::SimulationManager(frequency), 
+    scenePath(path),
+    context(1), // Inicialitza el context de ZeroMQ amb 1 thread
+    socket(context, zmq::socket_type::rep) // Crea 1 socket REP
 { 
     std::cout << "Constructor de StonefishRL" << std::endl;
-    std::cout << "[INIT] StonefishRL created with scene: " 
-              << path << std::endl;
+    std::cout << "[INIT] StonefishRL created with scene: " << path << std::endl;
+
+    InitializeZMQ(); 
 }   
+
 
 // Destructor
 StonefishRL::~StonefishRL() {
@@ -43,24 +48,82 @@ StonefishRL::~StonefishRL() {
     // Stonefish ho hauríem d'eliminar aqui.
 }
 
-// NO UTILITZAT
+
 void StonefishRL::Reset() {
-    sf::SimulationManager::RestartScenario();
+    //sf::SimulationManager::RestartScenario();
+    
+    //this->StopSimulation();
+
+    std::cout << "[StonefishRL] Resetting scenario...\n";
+    this->RestartScenario();
+    std::cout << "[StonefishRL] Scenario restarted OK\n";
+
     // RestartScenario ja conté:
     //      - DestroyScenario();
     //      - InitializeSolver();
     //      - InitializeScenario();
     //      - BuildScenario();
-    std::cout << "[StonefishRL] Scenario restarted OK\n";
 }
 
-// NO UTILITZAT
-void StonefishRL::Step(sf::Scalar ts) {
-    sf::SimulationManager::StepSimulation(ts);
-    std::cout << "[StonefishRL] StepSimulation OK";
+
+
+void StonefishRL::RecieveInstructions() {
+
+    zmq::message_t request;
+
+    // Esperar a rebre el missatge
+    auto result = socket.recv(request, zmq::recv_flags::none);
+
+    if(!result.has_value()) {
+        std::cerr << "[StonefishRL] No message received." << std::endl;
+        return;
+    }
+
+    // Convertir el missatge (que esta en un buffer) a string i mostrar-lo
+    std::string cmd = request.to_string();
+    std::cout << "[ZMQ] He rebut: (" << result.value() << " bytes) en la comanda: " << cmd << std::endl;
+
+    if(cmd == "RESET") {
+        std::cout << "[ZMQ] He rebut RESET\n";
+        Reset(); // Reiniciar l'escenari
+        socket.send(zmq::buffer("RESET OK"), zmq::send_flags::none);
+    }
+    else {
+        std::string cmd_ = cmd.substr(4);  // Treure "CMD:"
+        ApplyCommands(cmd_); 
+    }
+
+    std::cout << "[StonefishRL] Ready for StepSimulation.\n";
 }
 
-void StonefishRL::ApplyCommands(std::map<std::string, float> cmds) {
+
+void StonefishRL::SendObservations(){
+
+    std::map<std::string, std::vector<float>> scalar_observations = getScalarObservations();
+
+    // Convertir les observacions a string
+    std::string obs_str;
+    for (const auto& pair : scalar_observations) {
+        obs_str += "\n  [INFO] Nom sensor: " + pair.first + " => Angle [rad]: ";
+        for (size_t i = 0; i < pair.second.size(); i++)
+        {
+
+            obs_str += std::to_string(pair.second[i]);
+
+            if (i < pair.second.size() - 1) {
+                obs_str += " , Velocitat Angular [rad/s]: "; // Per separar els valors 
+            }
+        }
+    }       
+
+    socket.send(zmq::buffer(obs_str), zmq::send_flags::none);
+                
+}
+
+
+void StonefishRL::ApplyCommands(const std::string &str_cmds) {
+
+    CommandData cmds = ConvertStringToMap(str_cmds);
  
     unsigned int id = 0;
     sf::Actuator* actuator_ptr;
@@ -75,183 +138,20 @@ void StonefishRL::ApplyCommands(std::map<std::string, float> cmds) {
                 if(servo){
                     servo->setControlMode(sf::ServoControlMode::VELOCITY);
                     std::cout << "[INFO] Servo actuator found: " << servo->getName() << std::endl;
-                    std::cout << "[ApplyCommands] Target for " << servo->getName() << " = " << cmds[servo->getName()] << std::endl;
-                    servo->setDesiredVelocity(cmds[servo->getName()]);
+                    std::cout << "[ApplyCommands] Target for " << servo->getName() << " = " << cmds.commands[servo->getName()] << std::endl;
+                    servo->setDesiredVelocity(cmds.commands[servo->getName()]);
                 }
                 break;
             }
-
-                            
+                         
             default:
                 std::cout << "[WARN] Actuator type not supported.\n";
                 break;
         
         }
     }
-
-
-/*
-    for(auto const& [name, val] : cmds.commands) {
-        std::cout << "NOM ACTUADOR: " << name << ". Aplicant un canvi de posició a : " << val << "." << std::endl;
-        
-        auto iT = actuators_.find("Robot/Servo");
-        
-        if(iT == actuators_.end()) {
-            std::cout << "[TESTS] Actuator name:" << name << " not found" << std::endl;
-            //continue;
-        }
-
-        auto act = iT->second;
-        if(act->getType() == sf::ActuatorType::SERVO){
-            std::cout << "He entrat" << std::endl;
-            sf::Servo* servo = static_cast<sf::Servo*>(act);
-            servo->setControlMode(sf::ServoControlMode::POSITION);
-            servo->setDesiredPosition(9.5);
-        }
-    }   
-*/
-// DIU QUE NO TROBA ELS ACTUADORS
-/*    for(const auto& pair : cmds.commands) {
-        const std::string& actuator_name = pair.first;
-        float command_value = pair.second;
-    
-        // Buscar actuador per nom
-        auto iT = actuators_.find(actuator_name);
-        if(iT == actuators_.end()) {
-            std::cerr << "[WARN] Actuator '" << actuator_name << "' not found in simulation." << std::endl;
-            continue;
-        }
-
-        sf::Actuator* generic_actuator = iT->second;
-
-        if(auto* servo = dynamic_cast<sf::Servo*>(generic_actuator)) {
-            servo->setControlMode(sf::ServoControlMode::POSITION);
-            servo->setMaxVelocity(0.1f);
-            servo->setDesiredPosition(command_value);
-            // ...
-        }
-
-     // Per afegir més tipus 
-     // else if(auto* motor = dynamic_cast<sf::Motor*>(actuator)) {
-     //     motor->setIntensity(value);
-     //
-     // }
-
-        else {
-            std::cerr << "[WARN] Actuator '" << actuator_name << "' type not supported in ApplyCommands." << std::endl;
-        }
-    }
-
-*/
-/*   
-    float t = getSimulationTime();
-    float pos = 0.5 * std::sin(t);
-
-
-    for(const auto& pair : cmds.commands) 
-    {
-        const std::string& actuator_name = pair.first;
-        const float command_value = pair.second;
-    
-    
-        auto iT = actuators_.find(actuator_name);
-        if(iT == actuators_.end())
-        {
-            std::cerr << "[WARN] Actuator " << actuator_name << " not found in simulation." << std::endl;
-        }
-
-        sf::Actuator* generic_actuator = iT->second;
-
-        if(auto motor = dynamic_cast<sf::Motor*>(generic_actuator)){
-            
-        }
-        else if(auto servo = dynamic_cast<sf::Servo*>(generic_actuator)){
-            
-        }
-    }
-*/
 }
 
-
-StonefishRL::ObsData StonefishRL::GetObservations() {
-    
-    ObsData data;
-
-    if (obs_sensors_.empty()) {
-        return data;
-    }
-
-    for(const auto& [sensor_name, sensorPtr] : obs_sensors_) {
-
-        if(!sensorPtr) {
-            std::cerr << "[WARN] Sensor " << sensor_name << " is nullptr!" << std::endl;
-            continue;
-        }
-        
-        // ScalarSensor
-        if(auto scalar_sensor = dynamic_cast<sf::ScalarSensor*>(sensorPtr))
-        {
-            //std::vector<float> sensor_values = scalar_sensor->getLastSample().getData();
-            sensor_values_[sensor_name] = scalar_sensor->getLastSample().getData();
-            std::cout << "Tamany del vector:" << sensor_values_[sensor_name].size() << std::endl;
-            std::cout << "Elements del mapa de sensors " << sensor_values_.size() << std::endl;
-
-            for(unsigned int i = 0; i < sensor_values_[sensor_name].size(); i++) {
-                std::cout << "Valors del sensors: " << sensor_values_[sensor_name][i] << std::endl;
-            }
-
-        // ------------------ PROBABLEMENT OPCIONAL ------------------
-            sf::Sample last_sample = scalar_sensor->getLastSample();
-            std::cout << "[INFO] LastSample ID: " << last_sample.getId() << std::endl 
-                      << "[INFO] Sensor Name: " << sensor_name << std::endl 
-                      << "[INFO] Num of channels: " << scalar_sensor->getNumOfChannels() << std::endl;
-       
-            for (size_t i = 0; i < last_sample.getNumOfDimensions(); i++) {
-                std::cout << " Dim " << i << ": " << last_sample.getValue(i) << std::endl;
-            }
-         // ------------------------------------------------------------
-       
-
-            if (sensor_values_.empty()) {
-                std::cerr << "[WARN] No observations catched! (Check if sensors are defined in XML)" << std::endl;
-            }
-        }
-    }
-
-/*
-    // Iterar sobre els sensors que s'han guardat durant BuildScenario(). 
-    for(auto const& [name, sensor] : obs_sensors_) 
-    {
-        // Falta controlar errors del nullptr per exemple
-        if(auto* scalarSensor = dynamic_cast<sf::ScalarSensor*>(sensor))
-        {
-            // Agafar la ultima mostra del ScalarSensor
-            sf::Sample lastSample = scalarSensor->getLastSample();
-
-            // Crear un vector per guardar els valors dels canals d'aquest sensor en el que estem
-            std::vector<float> sensor_values;
-            sensor_values.reserve(scalarSensor->getNumOfChannels());
-
-            // Iterar sobre tots els canals del sensor i obtenir els seus valors
-            for(unsigned int i = 0; i < scalarSensor->getNumOfChannels(); i++) 
-            {
-                sensor_values.push_back(static_cast<float>(lastSample.getValue(i)));
-            }
-
-            // Guardar el vector al map d'observacions
-            data.num_observations[name] = sensor_values;
-        }
-        else 
-        {
-            std::cout << "Sensor: " << sensor->getName() << " not detected" << std::endl;
-        }
-
-        // else if (vision sensor)
-
-    }
-*/
-    return data;
-}
 
 void StonefishRL::BuildScenario() {
 
@@ -275,7 +175,8 @@ void StonefishRL::BuildScenario() {
     sf::Sensor* sensor_ptr;
     unsigned int sensor_id = 0;
 
-    while((sensor_ptr = getSensor(sensor_id++)) != nullptr) {
+    while((sensor_ptr = getSensor(sensor_id++)) != nullptr) 
+    {
         obs_sensors_[sensor_ptr->getName()] = sensor_ptr;
     }  
     
@@ -292,10 +193,9 @@ void StonefishRL::BuildScenario() {
     
     sf::Actuator* actuator_ptr;
     unsigned int actuator_id = 0;
-    while((actuator_ptr = getActuator(actuator_id++)) != nullptr){
-       
+    while((actuator_ptr = getActuator(actuator_id++)) != nullptr)
+    {
         actuators_[actuator_ptr->getName()] = actuator_ptr;
-        
     } 
 
     if (actuators_.empty()) std::cout << "[WARN] No actuators registered in this scenario!" << std::endl;
@@ -306,8 +206,6 @@ void StonefishRL::BuildScenario() {
         }
     }
 
-    ObsData ab = GetObservations();
-    
     std::cout << "[INFO] Scenario loaded succesfully.\n";
 }
 
@@ -337,6 +235,7 @@ std::map<std::string, std::vector<float>> StonefishRL::getScalarObservations() {
 
             for(unsigned int i = 0; i < scalar_sensor->getNumOfChannels(); i++) {
                 sensor_values.push_back(static_cast<float>(lastSample.getValue(i)));
+                std::cout << "[CHANNEL] Nom del canal: " << scalar_sensor->getSensorChannelDescription(i).name;
             }
             sensorData[sensor_ptr->getName()] = std::move(sensor_values);
         }
@@ -348,3 +247,51 @@ std::map<std::string, std::vector<float>> StonefishRL::getScalarObservations() {
 }
 
 
+void StonefishRL::InitializeZMQ() {
+    try {
+        socket.bind("tcp://*:5555");  // Escolta al port "5555"
+        std::cout << "[ZMQ] Servidor REP actiu al port 5555\n";
+    }
+    catch(const zmq::error_t& e) {
+        std::cerr << "[ZMQ ERROR] " << e.what() << "\n";
+    }
+}
+
+
+StonefishRL::CommandData StonefishRL::ConvertStringToMap(const std::string str){
+    
+    StonefishRL::CommandData result;
+
+    std::string input = str;
+    input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
+
+    std::istringstream iss(str);
+    std::string token;
+
+    while (std::getline(iss, token, ';')) {
+
+        if(token.empty()) continue;
+
+        size_t pos = token.find(":"); // Busca la posicio del ":"
+
+        if(pos == std::string::npos) {
+            std::cerr << "[ERROR] Invalid command format: " << token << ". Expected format: 'actuator_name:value'." << std::endl;
+            continue; 
+        }
+
+        // Separar nom i valor 
+        std::string name = token.substr(0, pos); // Agafa el que hi ha abans dels ":"
+        std::string value_str = token.substr(pos + 1); // Agafa el que hi ha dps dels ":"
+
+        float value = std::stof(value_str); // Convertir a float
+
+        if(!(actuators_.count(name))) {
+            std::cerr << "[ERROR] Actuator '" << name << "' not found in the scenario." << std::endl;
+            continue; // Si l'actuador no existeix, salta aquest token
+        }
+
+        result.commands[name] = static_cast<float>(value);
+    }
+
+    return result;
+}
