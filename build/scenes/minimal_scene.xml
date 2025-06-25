@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<scenario>
+
+    <environment>
+        <ned latitude="20.0" longitude="50.0"/>
+		<ocean />
+    </environment>
+
+    <materials>
+        <material name="Ground" density="1000.0" restitution="0.5"/>
+        <material name="Steel" density="7850.0" restitution="0.1"/>
+        <friction_table>
+			<friction material1="Ground" material2="Ground" static="0.9" dynamic="0.8"/>
+			<friction material1="Steel" material2="Steel" static="0.5" dynamic="0.2"/>
+			<friction material1="Ground" material2="Steel" static="0.7" dynamic="0.5"/>
+		</friction_table>
+    </materials>
+
+    <looks>
+        <look name="gray" gray="0.3" roughness="0.4" metalness="0.5"/>
+        <look name="dark" rgb="0.2 0.15 0.1" roughness="0.6" metalness="0.8"/>
+        <look name="yellow" rgb="1.0 0.9 0.0" roughness="0.3"/>
+    </looks>
+
+ 
+    <!-- The ground -->
+    <static name="floor" type="plane">
+        <material name="Steel"/>
+        <look name="gray"/>
+        <world_transform xyz="7.0 0.0 1.0" rpy="0.0 0.0 0.0"/>
+    </static>
+
+    <!-- Fixed obstacle (A ball) -->
+    <static name="Ball" type="sphere">
+        <dimensions radius="0.5"/>
+        <origin xyz="-3.0 0.0 1" rpy="0 0 0"/>
+        <material name="Steel"/>
+        <look name="yellow"/>
+        <world_transform xyz="2.0 0.0 5.0" rpy="0.0 0.0 0.0"/>
+    </static>
+
+    <!-- Robot -->
+    <robot name="Robot" fixed="false" self_collisions="false">
+        <base_link name="Base" type="sphere" physics="surface">
+            <dimensions radius="0.2"/>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <material name="Steel"/>
+            <look name="dark"/>
+        </base_link>
+
+        <link name="Link1" type="box" physics="surface">
+            <dimensions xyz="0.1 0.02 0.5"/>
+            <origin xyz="0.0 0.0 -0.2" rpy="0.0 0.0 3.1415"/>
+            <material name="Steel"/>
+            <look name="dark"/>
+        </link>
+        
+        <link name="Link2" type="box" physics="surface">
+            <dimensions xyz="0.1 0.02 0.5"/>
+            <origin xyz="0.0 0.0 -0.2" rpy="0.0 0.0 3.1415"/>
+            <material name="Steel"/>
+            <look name="dark"/>
+        </link>
+
+        <joint name="Joint1" type="revolute">
+            <parent name="Base"/>
+            <child name="Link1"/>
+            <origin xyz="0.0 0.25 -0.2" rpy="0.0 0.0 0.0"/>
+            <axis xyz="0.0 1.0 0.0"/>
+        </joint>
+
+        <joint name="Joint2" type="revolute">
+            <parent name="Base"/>
+            <child name="Link2"/>
+            <origin xyz="0.0 -0.25 -0.2" rpy="0.0 0.0 0.0"/>
+            <axis xyz="0.0 1.0 0.0"/>
+        </joint>
+
+        <actuator name="Servo" type="servo">
+            <controller position_gain="1.0" velocity_gain="1.0" max_torque="10.0"/>
+            <joint name="Joint1"/>
+        </actuator>
+
+        <actuator name="Servo2" type="servo">
+            <controller position_gain="1.0" velocity_gain="1.0" max_torque="10.0"/>
+            <joint name="Joint2"/>
+        </actuator>
+
+        <sensor name="Encoder" type="encoder">
+            <joint name="Joint2"/>
+            <history samples="1000"/>
+            <controller position_gain="1.0" velocity_gain="2.0" max_torque="100.0"/>
+        </sensor>
+
+       <!-- <sensor name="IMU" type="imu" rate="10.0">
+            <link name="Link2"/>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <range angular_velocity="10.0 10.0 5.0" linear_acceleration="10.0"/>
+            <noise angle="0.1 0.1 0.5" angular_velocity="0.05" yaw_drift="0.001" linear_acceleration="0.1"/>
+            <history samples="1"/>
+        </sensor>
+        -->
+        <world_transform xyz="0.0 0.0 -2.0" rpy="0.0 0.0 0.0"/>
+    </robot>
+</scenario>
