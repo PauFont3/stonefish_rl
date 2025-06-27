@@ -1,100 +1,109 @@
-#include "StonefishRL.h"
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include <cmath>
+/*    
+    This file is a part of Stonefish.
+
+    Stonefish is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Stonefish is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+//
+//  main.cpp
+//  LearningTest
+//
+//  Created by Patryk Cieslak on 20/05/2025.
+//  Copyright (c) 2025 Patryk Cieslak. All rights reserved.
+//
 
 #include <Stonefish/core/GraphicalSimulationApp.h>
-#include <Stonefish/core/SimulationApp.h>
-#include <Stonefish/core/SimulationManager.h>
 #include <Stonefish/sensors/scalar/RotaryEncoder.h>
-#include <Stonefish/sensors/scalar/IMU.h>
-#include <Stonefish/sensors/ScalarSensor.h>
-#include <Stonefish/sensors/Sample.h>
 #include <Stonefish/actuators/Motor.h>
-#include <Stonefish/actuators/Servo.h>
-#include <Stonefish/StonefishCommon.h>
+#include <Stonefish/sensors/Sample.h>
 
-
+#include "LearningTestManager.h"
 
 struct LearningThreadData
 {
     sf::SimulationApp& sim;
 };
 
-
-int learning(void* data) {
+int learning(void* data)
+{
     sf::SimulationApp& simApp = static_cast<LearningThreadData*>(data)->sim;
     sf::SimulationManager* simManager = simApp.getSimulationManager();
-    StonefishRL* myManager = static_cast<StonefishRL*>(simManager);
 
-    while (simApp.getState() == sf::SimulationState::NOT_READY)
+    // Wait for app to be ready
+    while(simApp.getState() == sf::SimulationState::NOT_READY)
     {
         SDL_Delay(10);
     }
-    
+
     // Start the simulation (includes building the scenario)
     simApp.StartSimulation();
-    int contador = 0;
-
-    while(simApp.getState() != sf::SimulationState::FINISHED && contador < 50 /*|| simApp.getState() != sf::SimulationState::STOPPED*/)
-    {
-        if(simApp.getState() == sf::SimulationState::STOPPED) {
-            myManager->RestartScenario();
-            simApp.StartSimulation();
-            std::cout << "[INFO] Scenario restarted." << std::endl;
-        }
-
-        myManager->RecieveInstructions();
-
-        simApp.StepSimulation();
     
-        std::cout << std::endl << "----------------  STARTING STEP: " << contador << "  ----------------" << std::endl; 
-        std::cout << "------------------------------------------------------" << std::endl;
+    // Repeatedly step the simulation
+    while(simApp.getState() != sf::SimulationState::FINISHED)
+    {
+        // Step simulation
+        simApp.StepSimulation();
 
-        myManager->SendObservations();
-      
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        // Get the observations
+        sf::Scalar angle1 = static_cast<sf::RotaryEncoder*>(simManager->getSensor("Encoder1"))->getLastSample().getValue(0);
+        sf::Scalar angle2 = static_cast<sf::RotaryEncoder*>(simManager->getSensor("Encoder2"))->getLastSample().getValue(0);
 
-        contador++;
+        // Compute command
+        sf::Scalar command = btCos(angle1 * angle2) * 15;
 
-        std::cout << "[INFO] Simulation time: " << simManager->getSimulationTime() << " seconds." << std::endl;
-        std::cout << "[INFO] Step " << contador << " completed." << std::endl;
+        // Apply actuator commands
+        static_cast<sf::Motor*>(simManager->getActuator("Motor"))->setIntensity(command);
     }
-    simApp.StopSimulation();
-    std::cout << "[INFO] Learning thread finished after " << contador << " steps." << std::endl;
-
+    
     return 0;
 }
 
-
-int main(int argc, char **argv) {
-
-    double frequency = 1000.0;
+int main(int argc, const char * argv[])
+{
+    // Define the simulation settings
+    sf::RenderSettings s;
+    s.windowW = 1200;
+    s.windowH = 900;
+    s.aa = sf::RenderQuality::HIGH;
+    s.shadows = sf::RenderQuality::HIGH;
+    s.ao = sf::RenderQuality::HIGH;
+    s.atmosphere = sf::RenderQuality::HIGH;
+    s.ocean = sf::RenderQuality::DISABLED;
     
-    if (argc < 2) {
-        std::cerr << "[ERROR] You may need 1 arguments at least." << std::endl;
-        return 1;
-    }
-
-    std::string scene_path = argv[1]; 
-
     sf::HelperSettings h;
-    sf::RenderSettings r;
-    r.windowW = 1200;
-    r.windowH = 900;
-   
-
-    StonefishRL* simManager = new StonefishRL(scene_path, frequency);
-
-    sf::GraphicalSimulationApp app("DEMO STONEFISH RL", scene_path, r, h, simManager);
-
+    h.showFluidDynamics = false;
+    h.showCoordSys = false;
+    h.showBulletDebugInfo = false;
+    h.showSensors = false;
+    h.showActuators = false;
+    h.showForces = false;
+    
+    // Create the simulation manager and application
+    // Here you define the sampling frequency of the simulation;
+    // higher frequency means more accurate simulation but taking more time to compute...
+    LearningTestManager* simulationManager = new LearningTestManager(1000.0);
+    sf::GraphicalSimulationApp app("LearningTestRL", ".", s, h, simulationManager);
+    
+    // Start the learning thread
     LearningThreadData data {app};
     SDL_Thread* learningThread = SDL_CreateThread(learning, "learningThread", &data);
-    
-    app.Run(false, false, sf::Scalar(1/frequency));
-    std::cout << "[INFO] Simulation finished." << std::endl;
 
+    // Start the main application loop (no automatic start and no automatic step!)
+    // Here you define the time step that will be used to advance the simulation.
+    app.Run(false, false, sf::Scalar(0.1));
+
+    // Clean-up
     int status {0};
     SDL_WaitThread(learningThread, &status);
     return status;

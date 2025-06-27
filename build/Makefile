@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/ubuntu/stonefish_rl
+CMAKE_SOURCE_DIR = /home/ubuntu/stonefishRL
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/ubuntu/stonefish_rl/build
+CMAKE_BINARY_DIR = /home/ubuntu/stonefishRL/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/ubuntu/stonefish_rl/build/CMakeFiles /home/ubuntu/stonefish_rl/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ubuntu/stonefishRL/build/CMakeFiles /home/ubuntu/stonefishRL/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/ubuntu/stonefish_rl/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ubuntu/stonefishRL/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -117,48 +117,48 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named StonefishRLTest
+# Target rules for targets named LearningTestRL
 
 # Build rule for target.
-StonefishRLTest: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 StonefishRLTest
-.PHONY : StonefishRLTest
+LearningTestRL: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 LearningTestRL
+.PHONY : LearningTestRL
 
 # fast build rule for target.
-StonefishRLTest/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StonefishRLTest.dir/build.make CMakeFiles/StonefishRLTest.dir/build
-.PHONY : StonefishRLTest/fast
+LearningTestRL/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/LearningTestRL.dir/build.make CMakeFiles/LearningTestRL.dir/build
+.PHONY : LearningTestRL/fast
 
-src/StonefishRL.o: src/StonefishRL.cpp.o
-.PHONY : src/StonefishRL.o
+src/LearningTestManager.o: src/LearningTestManager.cpp.o
+.PHONY : src/LearningTestManager.o
 
 # target to build an object file
-src/StonefishRL.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StonefishRLTest.dir/build.make CMakeFiles/StonefishRLTest.dir/src/StonefishRL.cpp.o
-.PHONY : src/StonefishRL.cpp.o
+src/LearningTestManager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/LearningTestRL.dir/build.make CMakeFiles/LearningTestRL.dir/src/LearningTestManager.cpp.o
+.PHONY : src/LearningTestManager.cpp.o
 
-src/StonefishRL.i: src/StonefishRL.cpp.i
-.PHONY : src/StonefishRL.i
+src/LearningTestManager.i: src/LearningTestManager.cpp.i
+.PHONY : src/LearningTestManager.i
 
 # target to preprocess a source file
-src/StonefishRL.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StonefishRLTest.dir/build.make CMakeFiles/StonefishRLTest.dir/src/StonefishRL.cpp.i
-.PHONY : src/StonefishRL.cpp.i
+src/LearningTestManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/LearningTestRL.dir/build.make CMakeFiles/LearningTestRL.dir/src/LearningTestManager.cpp.i
+.PHONY : src/LearningTestManager.cpp.i
 
-src/StonefishRL.s: src/StonefishRL.cpp.s
-.PHONY : src/StonefishRL.s
+src/LearningTestManager.s: src/LearningTestManager.cpp.s
+.PHONY : src/LearningTestManager.s
 
 # target to generate assembly for a file
-src/StonefishRL.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StonefishRLTest.dir/build.make CMakeFiles/StonefishRLTest.dir/src/StonefishRL.cpp.s
-.PHONY : src/StonefishRL.cpp.s
+src/LearningTestManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/LearningTestRL.dir/build.make CMakeFiles/LearningTestRL.dir/src/LearningTestManager.cpp.s
+.PHONY : src/LearningTestManager.cpp.s
 
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
 # target to build an object file
 src/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StonefishRLTest.dir/build.make CMakeFiles/StonefishRLTest.dir/src/main.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/LearningTestRL.dir/build.make CMakeFiles/LearningTestRL.dir/src/main.cpp.o
 .PHONY : src/main.cpp.o
 
 src/main.i: src/main.cpp.i
@@ -166,7 +166,7 @@ src/main.i: src/main.cpp.i
 
 # target to preprocess a source file
 src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StonefishRLTest.dir/build.make CMakeFiles/StonefishRLTest.dir/src/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/LearningTestRL.dir/build.make CMakeFiles/LearningTestRL.dir/src/main.cpp.i
 .PHONY : src/main.cpp.i
 
 src/main.s: src/main.cpp.s
@@ -174,7 +174,7 @@ src/main.s: src/main.cpp.s
 
 # target to generate assembly for a file
 src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StonefishRLTest.dir/build.make CMakeFiles/StonefishRLTest.dir/src/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/LearningTestRL.dir/build.make CMakeFiles/LearningTestRL.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
 # Help Target
@@ -185,10 +185,10 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... StonefishRLTest"
-	@echo "... src/StonefishRL.o"
-	@echo "... src/StonefishRL.i"
-	@echo "... src/StonefishRL.s"
+	@echo "... LearningTestRL"
+	@echo "... src/LearningTestManager.o"
+	@echo "... src/LearningTestManager.i"
+	@echo "... src/LearningTestManager.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

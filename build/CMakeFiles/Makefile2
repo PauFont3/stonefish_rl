@@ -54,16 +54,16 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/ubuntu/stonefish_rl
+CMAKE_SOURCE_DIR = /home/ubuntu/stonefishRL
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/ubuntu/stonefish_rl/build
+CMAKE_BINARY_DIR = /home/ubuntu/stonefishRL/build
 
 #=============================================================================
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/StonefishRLTest.dir/all
+all: CMakeFiles/LearningTestRL.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -71,34 +71,34 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/StonefishRLTest.dir/clean
+clean: CMakeFiles/LearningTestRL.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/StonefishRLTest.dir
+# Target rules for target CMakeFiles/LearningTestRL.dir
 
 # All Build rule for target.
-CMakeFiles/StonefishRLTest.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StonefishRLTest.dir/build.make CMakeFiles/StonefishRLTest.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StonefishRLTest.dir/build.make CMakeFiles/StonefishRLTest.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ubuntu/stonefish_rl/build/CMakeFiles --progress-num=1,2,3 "Built target StonefishRLTest"
-.PHONY : CMakeFiles/StonefishRLTest.dir/all
+CMakeFiles/LearningTestRL.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/LearningTestRL.dir/build.make CMakeFiles/LearningTestRL.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/LearningTestRL.dir/build.make CMakeFiles/LearningTestRL.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/ubuntu/stonefishRL/build/CMakeFiles --progress-num=1,2,3 "Built target LearningTestRL"
+.PHONY : CMakeFiles/LearningTestRL.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/StonefishRLTest.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/ubuntu/stonefish_rl/build/CMakeFiles 3
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/StonefishRLTest.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/ubuntu/stonefish_rl/build/CMakeFiles 0
-.PHONY : CMakeFiles/StonefishRLTest.dir/rule
+CMakeFiles/LearningTestRL.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ubuntu/stonefishRL/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/LearningTestRL.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/ubuntu/stonefishRL/build/CMakeFiles 0
+.PHONY : CMakeFiles/LearningTestRL.dir/rule
 
 # Convenience name for target.
-StonefishRLTest: CMakeFiles/StonefishRLTest.dir/rule
-.PHONY : StonefishRLTest
+LearningTestRL: CMakeFiles/LearningTestRL.dir/rule
+.PHONY : LearningTestRL
 
 # clean rule for target.
-CMakeFiles/StonefishRLTest.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/StonefishRLTest.dir/build.make CMakeFiles/StonefishRLTest.dir/clean
-.PHONY : CMakeFiles/StonefishRLTest.dir/clean
+CMakeFiles/LearningTestRL.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/LearningTestRL.dir/build.make CMakeFiles/LearningTestRL.dir/clean
+.PHONY : CMakeFiles/LearningTestRL.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.
