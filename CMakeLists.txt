@@ -5,11 +5,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(Stonefish REQUIRED 1.5.0)
+find_package(PkgConfig REQUIRED)
 
+pkg_check_modules(ZMQ REQUIRED libzmq)
 
 include_directories(
-    #${CMAKE_SOURCE_DIR}/../stonefish/Library/include
     ${CMAKE_SOURCE_DIR}/include
+    ${ZMQ_INCLUDE_DIRS}
 )
 
 add_executable(StonefishRLTest 
@@ -17,10 +19,8 @@ add_executable(StonefishRLTest
    src/StonefishRL.cpp
 )
 
-file(COPY ${CMAKE_SOURCE_DIR}/scenes/minimal_scene.xml DESTINATION ${CMAKE_BINARY_DIR}/scenes)
-file(COPY ${CMAKE_SOURCE_DIR}/scenes/minimal_learning.xml DESTINATION ${CMAKE_BINARY_DIR}/scenes)
-
 # Link with Stonefish library
 target_link_libraries(StonefishRLTest
     Stonefish::Stonefish
+    ${ZMQ_LIBRARIES}
 )

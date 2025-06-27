@@ -1,0 +1,122 @@
+#include "StonefishRL.h"
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <cmath>
+
+
+#include <Stonefish/core/GraphicalSimulationApp.h>
+#include <Stonefish/core/SimulationApp.h>
+#include <Stonefish/core/SimulationManager.h>
+#include <Stonefish/sensors/scalar/RotaryEncoder.h>
+#include <Stonefish/sensors/scalar/IMU.h>
+#include <Stonefish/sensors/ScalarSensor.h>
+#include <Stonefish/sensors/Sample.h>
+#include <Stonefish/actuators/Motor.h>
+#include <Stonefish/actuators/Servo.h>
+#include <Stonefish/StonefishCommon.h>
+
+
+struct LearningThreadData
+{
+    sf::SimulationApp& sim;
+};
+
+
+int learning(void* data) {
+    sf::SimulationApp& simApp = static_cast<LearningThreadData*>(data)->sim;
+    sf::SimulationManager* simManager = simApp.getSimulationManager();
+    StonefishRL* myManager = static_cast<StonefishRL*>(simManager);
+
+
+    while (simApp.getState() == sf::SimulationState::NOT_READY)
+    {
+        SDL_Delay(10);
+    }
+    
+
+    // Start the simulation (includes building the scenario)
+    simApp.StartSimulation();
+    int contador = 0;
+
+    while(simApp.getState() != sf::SimulationState::FINISHED /* && !myManager->getLearningThreadState()/*&& contador < 5 /*|| simApp.getState() != sf::SimulationState::STOPPED*/)
+    {
+
+        myManager->RecieveInstructions();
+            
+        if(!myManager->getLearningThreadState()){
+
+            std::cout << myManager->getStepsPerSecond() << std::endl;
+            simApp.StepSimulation();
+            
+            std::cout << std::endl << "----------------  STARTING STEP: " << contador << "  ----------------" << std::endl; 
+            std::cout << "------------------------------------------------------" << std::endl;
+                
+            myManager->SendObservations();
+            
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+            contador++;
+
+            std::cout << "[INFO] Simulation time: " << simManager->getSimulationTime() << " seconds." << std::endl;
+            std::cout << "[INFO] Step " << contador << " completed." << std::endl;
+                
+            sf::SimulationState state = simApp.getState();
+            if(state == sf::SimulationState::FINISHED) { std::cout << "[INFO] Simulation finished." << std::endl; }
+            else if(state == sf::SimulationState::STOPPED) { std::cout << "[INFO] Simulation stopped." << std::endl; }
+            else if(state == sf::SimulationState::RUNNING) { std::cout << "[INFO] Simulation is running." << std::endl; }
+            else if(state == sf::SimulationState::NOT_READY) { std::cout << "[INFO] Simulation is not ready." << std::endl; }
+        }
+
+        else {
+            simApp.StopSimulation();
+            if(!myManager->EndSimulation())
+                std::cout << "[INFO] Simulacio parada perque el thread ha rebut la comanda 'RESET'" << std::endl;
+            else 
+                std::cout << "[INFO] Simulacio acabada perque el thread ha rebut la comanda 'EXIT'" << std::endl;
+        }
+
+    }
+
+    std::cout << "[INFO] Learning thread finished after " << contador << " steps." << std::endl;
+    myManager->InitializeLearningThreadFlagValue();
+ 
+    return 0;
+}
+
+
+int main(int argc, char **argv) {
+
+    double frequency = 1000.0;
+    
+    if (argc < 2) {
+        std::cerr << "[ERROR] You may need 1 arguments at least." << std::endl;
+        return 1;
+    }
+
+    std::string scene_path = argv[1]; 
+
+    sf::HelperSettings h;
+    sf::RenderSettings r;
+    r.windowW = 1200;
+    r.windowH = 900;
+   
+    
+    StonefishRL* simManager = new StonefishRL(scene_path, frequency);
+
+    sf::GraphicalSimulationApp app("DEMO STONEFISH RL", scene_path, r, h, simManager);
+
+    LearningThreadData data {app};
+    SDL_Thread* learningThread = SDL_CreateThread(learning, "learningThread", &data);
+
+    //std::cout << "BUM BUM" << std::endl;
+    //simManager->RestartScenario();
+    //std::cout << "Scenario restarted succesfully" << std::endl;
+
+    app.Run(false, false, sf::Scalar(1/frequency));
+    std::cout << "[INFO] Simulation finished." << std::endl;
+
+    int status {0};
+    SDL_WaitThread(learningThread, &status);
+    return status;
+}
