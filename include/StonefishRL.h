@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <atomic> // Per tenir el flag si volem fer el RESET
 
 #include <Stonefish/core/SimulationManager.h>
 #include <Stonefish/actuators/Actuator.h>
@@ -18,7 +17,8 @@ public:
 
     // Conté les comandes a aplicar
     struct CommandData {
-        std::map<std::string, float> commands; // Nom de l'actuador i el seu valor (float)
+        std::map<std::string, float> commands; // Nom de l'actuador i el seu valor (float). Aquest llegira els que estiguin ben escrits desde python.
+                                               // Si hi ha algun error en el nom no l'agafarà
     };
 
     // Constructor
@@ -35,12 +35,7 @@ public:
     std::map<std::string, std::vector<float>> getScalarObservations();
 
     CommandData ConvertStringToMap(std::string str);
-    void DestroyScenario() override;
-
-    bool getLearningThreadState() const;
-    void InitializeLearningThreadFlagValue();
-
-    bool EndSimulation() const; 
+    void ConvertStringToUnorderedMap(std::string str);
 
 protected:
     // Override del mètode de BuildScenario de sf::SimulationManager
@@ -48,19 +43,18 @@ protected:
 
 
 private:
+    
+    void InitializeZMQ();
+    
     std::string scenePath;
 
     //Guardar punters i actuadors pel seu nom
     std::map<std::string, sf::Sensor*> obs_sensors_;
-    std::map<std::string, sf::Actuator*> actuators_;
+    std::map<std::string, sf::Actuator*> actuators_; // Agafa tots els actuadors, perque es crida al BuildScenario.
     
     std::map<std::string, std::vector<double>> sensor_values_; // [nom sensor] -> [valors]
-
-    void InitializeZMQ();
+    std::unordered_map<std::string, std::unordered_map<std::string, float>> commands_; // Valors que s'aplicaran als actuadors.
 
     zmq::context_t context; // Context per ZeroMQ
     zmq::socket_t socket; // Socket per ZeroMQ
-
-    std::atomic_bool stopLearningThread; // El flag per indicar el reset
-    std::atomic_bool exitSimulation; // Acabar la simulació
 };

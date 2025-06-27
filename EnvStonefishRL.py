@@ -15,12 +15,12 @@ while True:
 
     if option == "1": 
 
-        commands = "CMD:Robot/Servo:1000.75;Robot/Servo2:2000.75"
+        commands = "Acrobot/Servo:POSITION:1.0;Acrobot/Servo2:POSITION:2.5"
 
-        for step in range(5000):
+        for step in range(1000000):
             
-            if(step == 2000):
-                commands = "CMD:Robot/Servo:-100.0;Robot/Servo2:-200.0"
+            if(step > 2000):
+                commands = "Acrobot/Servo:VELOCITY:0.0;Acrobot/Servo2:VELOCITY:0.0"
             
             print(f"[Python] Step {step + 1}\n")
 

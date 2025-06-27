@@ -4,7 +4,6 @@
 #include <chrono>
 #include <cmath>
 
-
 #include <Stonefish/core/GraphicalSimulationApp.h>
 #include <Stonefish/core/SimulationApp.h>
 #include <Stonefish/core/SimulationManager.h>
@@ -28,58 +27,45 @@ int learning(void* data) {
     sf::SimulationManager* simManager = simApp.getSimulationManager();
     StonefishRL* myManager = static_cast<StonefishRL*>(simManager);
 
-
     while (simApp.getState() == sf::SimulationState::NOT_READY)
     {
         SDL_Delay(10);
     }
-    
 
     // Start the simulation (includes building the scenario)
     simApp.StartSimulation();
     int contador = 0;
 
-    while(simApp.getState() != sf::SimulationState::FINISHED /* && !myManager->getLearningThreadState()/*&& contador < 5 /*|| simApp.getState() != sf::SimulationState::STOPPED*/)
+    while(simApp.getState() != sf::SimulationState::FINISHED)
     {
 
         myManager->RecieveInstructions();
+       
+        simApp.StepSimulation();
+        
+        std::cout << std::endl << "----------------  STARTING STEP: " << contador << "  ----------------" << std::endl; 
+        std::cout << "------------------------------------------------------" << std::endl;
             
-        if(!myManager->getLearningThreadState()){
+        myManager->SendObservations();
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
+                                                                    // Si el posem a 1, va una mica massa ràpid, però acceptable.
+                                                                    // Si el deixem a 10, potser és un xic lent, però veus bé les trajectories que fa.
 
-            std::cout << myManager->getStepsPerSecond() << std::endl;
-            simApp.StepSimulation();
+        contador++;
+
+        std::cout << "[INFO] Simulation time: " << simManager->getSimulationTime() << " seconds." << std::endl;
+        std::cout << "[INFO] Step " << contador << " completed." << std::endl;
             
-            std::cout << std::endl << "----------------  STARTING STEP: " << contador << "  ----------------" << std::endl; 
-            std::cout << "------------------------------------------------------" << std::endl;
-                
-            myManager->SendObservations();
-            
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-            contador++;
-
-            std::cout << "[INFO] Simulation time: " << simManager->getSimulationTime() << " seconds." << std::endl;
-            std::cout << "[INFO] Step " << contador << " completed." << std::endl;
-                
-            sf::SimulationState state = simApp.getState();
-            if(state == sf::SimulationState::FINISHED) { std::cout << "[INFO] Simulation finished." << std::endl; }
-            else if(state == sf::SimulationState::STOPPED) { std::cout << "[INFO] Simulation stopped." << std::endl; }
-            else if(state == sf::SimulationState::RUNNING) { std::cout << "[INFO] Simulation is running." << std::endl; }
-            else if(state == sf::SimulationState::NOT_READY) { std::cout << "[INFO] Simulation is not ready." << std::endl; }
-        }
-
-        else {
-            simApp.StopSimulation();
-            if(!myManager->EndSimulation())
-                std::cout << "[INFO] Simulacio parada perque el thread ha rebut la comanda 'RESET'" << std::endl;
-            else 
-                std::cout << "[INFO] Simulacio acabada perque el thread ha rebut la comanda 'EXIT'" << std::endl;
-        }
+        sf::SimulationState state = simApp.getState();
+        if(state == sf::SimulationState::FINISHED) { std::cout << "[INFO] Simulation finished." << std::endl; }
+        else if(state == sf::SimulationState::STOPPED) { std::cout << "[INFO] Simulation stopped." << std::endl; }
+        else if(state == sf::SimulationState::RUNNING) { std::cout << "[INFO] Simulation is running." << std::endl; }
+        else if(state == sf::SimulationState::NOT_READY) { std::cout << "[INFO] Simulation is not ready." << std::endl; }
 
     }
 
     std::cout << "[INFO] Learning thread finished after " << contador << " steps." << std::endl;
-    myManager->InitializeLearningThreadFlagValue();
  
     return 0;
 }
@@ -90,7 +76,7 @@ int main(int argc, char **argv) {
     double frequency = 1000.0;
     
     if (argc < 2) {
-        std::cerr << "[ERROR] You may need 1 arguments at least." << std::endl;
+        std::cerr << "[ERROR] You may need 1 argument at least." << std::endl;
         return 1;
     }
 
@@ -108,10 +94,6 @@ int main(int argc, char **argv) {
 
     LearningThreadData data {app};
     SDL_Thread* learningThread = SDL_CreateThread(learning, "learningThread", &data);
-
-    //std::cout << "BUM BUM" << std::endl;
-    //simManager->RestartScenario();
-    //std::cout << "Scenario restarted succesfully" << std::endl;
 
     app.Run(false, false, sf::Scalar(1/frequency));
     std::cout << "[INFO] Simulation finished." << std::endl;

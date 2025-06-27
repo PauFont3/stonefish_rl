@@ -1,5 +1,6 @@
 #include "StonefishRL.h"
 #include <iostream>
+#include <sstream>
 #include <thread>
 #include <chrono>
 #include <string>
@@ -20,6 +21,8 @@
 #include <Stonefish/actuators/Motor.h>
 #include <Stonefish/actuators/Actuator.h>
 
+#include <Stonefish/core/Robot.h>
+
 #include <Stonefish/core/SimulationManager.h>
 #include <Stonefish/core/SimulationApp.h>
 #include <Stonefish/core/ScenarioParser.h> // Per carregar l'arxiu XML
@@ -32,9 +35,7 @@ StonefishRL::StonefishRL(const std::string& path, double frequency)
     : sf::SimulationManager(frequency), 
     scenePath(path),
     context(1), // Inicialitza el context de ZeroMQ amb 1 thread
-    socket(context, zmq::socket_type::rep), // Crea 1 socket REP
-    stopLearningThread(false), //Inicialitzar a false el flag
-    exitSimulation(false) // Saber si ha d'acabar la simulació
+    socket(context, zmq::socket_type::rep) // Crea 1 socket REP
 { 
     std::cout << "Constructor de StonefishRL" << std::endl;
     std::cout << "[INIT] StonefishRL created with scene: " << path << std::endl;
@@ -54,20 +55,13 @@ StonefishRL::~StonefishRL() {
 
 
 void StonefishRL::Reset() {
-    
-   // this->StopSimulation(); // Aixo ho fa b, fa posar la simulació en estat de 'STOPPED'
-   // if(this->getState() == sf::SimulationState::STOPPED) {
-   //    std::cout << "[StonefishRL] Simulation is STOPPED." << std::endl;
-   // }
 
     std::cout << "Vaig a dormir una mica" << std::endl;
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     std::cout << "pta vida ja m'han despertat" << std::endl;
 
     std::cout << "[StonefishRL] Resetting scenario...\n";
-    // this = new StonefishRL(scenePath, 1000);
    
-
     obs_sensors_.clear();
     actuators_.clear();
 
@@ -82,18 +76,6 @@ void StonefishRL::Reset() {
     //      - InitializeScenario();
     //      - BuildScenario();
 }
-
-
-void StonefishRL::DestroyScenario() {
-
-    obs_sensors_.clear();
-    actuators_.clear();
-
-    std::cout << "[DEBUG] Entrant a DestroyScenario()\n";
-    sf::SimulationManager::DestroyScenario();
-    std::cout << "[DEBUG] Sortint de DestroyScenario()\n";
-}
-
 
 
 void StonefishRL::RecieveInstructions() {
@@ -114,22 +96,15 @@ void StonefishRL::RecieveInstructions() {
 
     if(cmd == "RESET") {
         std::cout << "[ZMQ] He rebut RESET\n";
-        //Reset(); // Reiniciar l'escenari
         socket.send(zmq::buffer("RESET OK"), zmq::send_flags::none);
-        stopLearningThread = true;
     }
     else if (cmd == "EXIT"){
         std::cout << "[ZMQ] He rebut EXIT\n";
         socket.send(zmq::buffer("EXIT OK"), zmq::send_flags::none);
-        stopLearningThread = true;
-        exitSimulation = true;
     }
     else {
-        std::string cmd_ = cmd.substr(4);  // Treure "CMD:"
-        ApplyCommands(cmd_); 
+        ApplyCommands(cmd); 
     }
-
-    std::cout << "[StonefishRL] Ready for StepSimulation.\n";
 }
 
 
@@ -159,31 +134,119 @@ void StonefishRL::SendObservations(){
 
 void StonefishRL::ApplyCommands(const std::string &str_cmds) {
 
-    CommandData cmds = ConvertStringToMap(str_cmds);
+    /*CommandData cmds = ConvertStringToMap(str_cmds);
  
     unsigned int id = 0;
     sf::Actuator* actuator_ptr;
 
     while((actuator_ptr = getActuator(id++)) != nullptr) {
         
-        switch (actuator_ptr->getType()) {
+        
+        // Si han escrit el nom malament, que no el detecti. Perque ara mateix els esta agafant tots igualment. 
+        // T'indica que has posat el nom malament pero t'agafa tots els sensors igualment, perque ho busca per 
+        // la llista de ids.
+        std::string actuator_name = actuator_ptr->getName();
 
-            case sf::ActuatorType::SERVO:
-            {
-                sf::Servo* servo = dynamic_cast<sf::Servo*>(actuator_ptr);
-                if(servo){
-                    servo->setControlMode(sf::ServoControlMode::VELOCITY);
-                    std::cout << "[INFO] Servo actuator found: " << servo->getName() << std::endl;
-                    std::cout << "[ApplyCommands] Target for " << servo->getName() << " = " << cmds.commands[servo->getName()] << std::endl;
-                    servo->setDesiredVelocity(cmds.commands[servo->getName()]);
+        if()
+
+        if(cmds.commands.find(actuator_name) != cmds.commands.end()){
+
+            switch (actuator_ptr->getType()) {
+
+                case sf::ActuatorType::SERVO:
+                {
+                    // Mira si al mapa 
+                    if(commands_.count(actuator_name) > 0 && sf::Servo* servo = dynamic_cast<sf::Servo*>(actuator_ptr);){
+
+                        for
+
+                        if(commands_[actuator_name][])
+                        servo->setControlMode(sf::ServoControlMode::VELOCITY);
+                        std::cout << "[INFO] Servo actuator found: " << servo->getName() << std::endl;
+                        std::cout << "[ApplyCommands] Target for " << servo->getName() << " = " << cmds.commands[servo->getName()] << std::endl;
+                        servo->setDesiredVelocity(cmds.commands[servo->getName()]);
+
+                        std::cout << "La posicio (l'angle) a la que es troba: " << servo->getName() << " abans d'aplicar el setDesiredPosition(...) es: " << servo->getPosition() << std::endl;
+                    
+                        servo->setControlMode(sf::ServoControlMode::POSITION);
+                        servo->setDesiredPosition(); // Va de pi a -pi el rang de possibles valors
+                    
+                        std::cout << "La nova posicio (l'angle) a la que es troba: " << servo->getName() << " després d'aplicar el setDesiredPosition(...) es: " << servo->getPosition() << std::endl;
+
+                    }
+                    break;
                 }
+                            
+                default:
+                    std::cout << "[WARN] Actuator type not supported.\n";
+                    break;
+            
+            }
+        }
+    }*/
+
+    // Assigna els nous valors a l'estructura 
+    // que tenim als atributs de la classe StonefishRL.
+    ConvertStringToUnorderedMap(str_cmds);
+
+    unsigned int id = 0;
+    sf::Actuator* actuator_ptr;
+
+    while ((actuator_ptr = getActuator(id++)) != nullptr) {
+    
+        std::string actuator_name = actuator_ptr->getName();
+
+        // Només continuem la iteració si hi ha commands per l'actuador que estem mirant 
+        if (commands_.count(actuator_name) > 0){
+        
+            switch (actuator_ptr->getType())
+            {
+                case sf::ActuatorType::SERVO: 
+                {
+                    sf::Servo* servo = dynamic_cast<sf::Servo*>(actuator_ptr);
+                    if (!servo) {
+                        std::cout << "[WARNING] Not converted " << actuator_name << " to sf::Servo.\n";
+                        break;
+                    }
+
+                    // Ha trobat el SERVO, busca tots els parametres (VELOCITY, POSITION, ...) que té el Servo.
+                    for(const auto& [action, action_value] : commands_[actuator_name])
+                    {
+                        std::cout << "[INFO] Nom de l'actuador al qual intentem aplicar la velocitat " << actuator_name << std::endl;
+                        if(action == "VELOCITY") 
+                        {
+                            servo->setControlMode(sf::ServoControlMode::VELOCITY);
+                            servo->setDesiredVelocity(action_value);
+                            std::cout << "[Servo] Set VELOCITY = " << action_value << " from " << actuator_name << "\n";
+                        }
+                        else if (action == "POSITION") // El rang de valors va de pi a -pi
+                        {  
+                            std::cout << "[Servo] Actual position of " << actuator_name << " = " << servo->getPosition() << "\n";
+                            servo->setControlMode(sf::ServoControlMode::POSITION);
+                            std::cout << "[Servo] New incoming POSITION = " << action_value << " for " << actuator_name << "\n";
+                            //servo->setMaxVelocity(100.0); // Diria que no afecta en res. Pq si posem un valor més alt o més baix es comporta igual.
+                            //servo->setDesiredVelocity(100.0); // Diria que no afecte en res. Pq si posem un valor més alt o més baix es comporta igual.
+                            servo->setDesiredPosition(action_value); // Aquest es el que realment ens marca a quina posicio volem deixar l'acrobot.
+                            std::cout << "[Servo] Reached POSITION = " << servo->getPosition() << " for " << actuator_name << "\n";
+                        }
+                        else if(action == "TORQUE") 
+                        {
+                            servo->setControlMode(sf::ServoControlMode::TORQUE);
+                            servo->setMaxTorque(action_value);
+                            std::cout << "[Servo] Set MAX TORQUE = " << action_value << " from " << actuator_name << "\n";
+                        }
+                        else 
+                        {
+                            std::cout << "[WARNING] Unknown command '" << action << "' for servo '" << actuator_name << "'\n";   
+                        }
+                    }
+                    break;
+                }
+            
+                default:
+                    std::cout << "[WARNING] Actuator type not supported: " << actuator_name << "\n";
                 break;
             }
-                         
-            default:
-                std::cout << "[WARN] Actuator type not supported.\n";
-                break;
-        
         }
     }
 }
@@ -204,6 +267,8 @@ void StonefishRL::BuildScenario() {
 
     std::cout << "Ha entrat al BuildScenario()" << std::endl; 
 
+
+    // POTSER NO CAL FER-HO.
     obs_sensors_.clear();
     actuators_.clear();
 
@@ -250,8 +315,26 @@ std::map<std::string, std::vector<float>> StonefishRL::getScalarObservations() {
 
     std::map<std::string, std::vector<float>> sensorData;
     sf::Sensor* sensor_ptr;
+    sf::Robot* robot_ptr;
+    sf::Actuator* actuator_ptr;
+
 
     unsigned int id = 0;
+    std::cout << "------------ ROBOTS ------------" << std::endl;
+    while((robot_ptr = getRobot(id++)) != nullptr){
+        
+        sf::Transform position = robot_ptr->getTransform();
+        sf::Vector3 origin = position.getOrigin();
+        float eix_x = origin.getX();
+        float eix_y = origin.getY();
+        float eix_z = origin.getZ();
+
+        std::cout << "[COORDENADES] Posició del robot " << robot_ptr->getName() << " en el frame 'World' del robot : EIX X: " << eix_x << " EIX Y: " << eix_y << " EIX Z: " << eix_z << std::endl;
+    }
+
+
+    id = 0;
+    std::cout << "------------ SENSORS ------------" << std::endl;
     while((sensor_ptr = getSensor(id++)) != nullptr) 
     {
         if(!sensor_ptr->isNewDataAvailable()) {
@@ -266,6 +349,7 @@ std::map<std::string, std::vector<float>> StonefishRL::getScalarObservations() {
             if(!scalar_sensor) continue;
 
             sf::Sample lastSample = scalar_sensor->getLastSample();
+            
             std::vector<float> sensor_values;
             sensor_values.reserve(scalar_sensor->getNumOfChannels());
 
@@ -277,6 +361,16 @@ std::map<std::string, std::vector<float>> StonefishRL::getScalarObservations() {
         }
 
         sensor_ptr->MarkDataOld(); // Marcar dades com antigues per evitar duplicats, no se si realment està fent
+    }
+    
+    id = 0;
+    std::cout << "------------ ACTUATORS ------------" << std::endl;
+    while((actuator_ptr = getActuator(id++)) != nullptr) {
+        if(actuator_ptr->getType() == sf::ActuatorType::SERVO){
+            sf::Servo* servo_ptr = dynamic_cast<sf::Servo*>(actuator_ptr);
+            std::cout << "[INFO] ACTUATOR: " << actuator_ptr->getName() << " is in POSITION: " << servo_ptr->getPosition() << std::endl;
+            std::cout << "[INFO] ACTUATOR: " << actuator_ptr->getName() << " is with VELOCITY: " << servo_ptr->getVelocity() << std::endl;
+        }
     }
 
     return sensorData;
@@ -303,7 +397,7 @@ StonefishRL::CommandData StonefishRL::ConvertStringToMap(const std::string str){
 
     std::istringstream iss(str);
     std::string token;
-
+    
     while (std::getline(iss, token, ';')) {
 
         if(token.empty()) continue;
@@ -323,26 +417,53 @@ StonefishRL::CommandData StonefishRL::ConvertStringToMap(const std::string str){
 
         if(!(actuators_.count(name))) {
             std::cerr << "[ERROR] Actuator '" << name << "' not found in the scenario." << std::endl;
-            continue; // Si l'actuador no existeix, salta aquest token
+            std::cout << "DINS FUNCIÓ: Estic guardant al mapa amb nom: " << name <<  " el valor de: " << value << std::endl; 
+            
+            continue; // Si l'actuador no existeix, salta al seguent
         }
 
         result.commands[name] = static_cast<float>(value);
+        std::cout << "Estic guardant al mapa amb nom: " << name <<  " el valor de: " << value << std::endl; 
     }
 
     return result;
 }
 
 
-bool StonefishRL::getLearningThreadState() const {
-    return stopLearningThread;
-}
+
+void StonefishRL::ConvertStringToUnorderedMap(std::string str){
+
+    commands_.clear(); // Netejar els antics valors, per si n'hi hagues de nous.
+
+    std::string linea;
+    std::stringstream ss(str);
+
+    while(std::getline(ss, linea, ';')){
+        
+        if(linea.empty()) continue;
+
+        std::string token;
+        std::stringstream lineStream(linea);
+
+        // 1r token = nom de l'actuador
+        if (!std::getline(lineStream, token, ':')) continue;
+        std::string actuator_name = token;
 
 
-void StonefishRL::InitializeLearningThreadFlagValue(){
-    stopLearningThread = false;
-}
-
-
-bool StonefishRL::EndSimulation() const {
-    return exitSimulation;
+        // Llegir clau(action) : valor(action_value)
+        while (std::getline(lineStream, token, ':')) {
+            
+            std::string action = token;
+            
+            if (!std::getline(lineStream, token, ':')) break;
+            
+            try {
+                float action_value = std::stof(token);
+                commands_[actuator_name][action] = action_value;
+            } 
+            catch (...) { // Agafa qualsevol excepció sense importar de quin tipus es
+                std::cerr << "[ERROR] Invalid value for " << actuator_name << ":" << action << " --> '" << token << "'\n";
+            }
+        }
+    }
 }

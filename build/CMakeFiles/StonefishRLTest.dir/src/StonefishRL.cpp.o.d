@@ -159,9 +159,7 @@ CMakeFiles/StonefishRLTest.dir/src/StonefishRL.cpp.o: \
  /usr/include/c++/11/array /usr/include/c++/11/bits/uses_allocator.h \
  /usr/include/c++/11/bits/invoke.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /usr/include/c++/11/bits/erase_if.h /usr/include/c++/11/atomic \
- /usr/include/c++/11/bits/atomic_base.h \
- /usr/include/c++/11/bits/atomic_lockfree_defines.h \
+ /usr/include/c++/11/bits/erase_if.h \
  /usr/local/include/Stonefish/core/SimulationManager.h \
  /usr/local/include/Stonefish/StonefishCommon.h \
  /usr/include/c++/11/memory /usr/include/c++/11/bits/stl_tempbuf.h \
@@ -173,6 +171,8 @@ CMakeFiles/StonefishRLTest.dir/src/StonefishRL.cpp.o: \
  /usr/include/c++/11/bits/allocated_ptr.h \
  /usr/include/c++/11/bits/refwrap.h /usr/include/c++/11/ext/concurrence.h \
  /usr/include/c++/11/bits/shared_ptr_atomic.h \
+ /usr/include/c++/11/bits/atomic_base.h \
+ /usr/include/c++/11/bits/atomic_lockfree_defines.h \
  /usr/include/c++/11/backward/auto_ptr.h \
  /usr/include/c++/11/pstl/glue_memory_defs.h \
  /usr/include/c++/11/pstl/execution_defs.h \
@@ -744,6 +744,8 @@ CMakeFiles/StonefishRLTest.dir/src/StonefishRL.cpp.o: \
  /usr/local/include/Stonefish/actuators/JointActuator.h \
  /usr/local/include/Stonefish/actuators/Actuator.h \
  /usr/local/include/Stonefish/actuators/Motor.h \
+ /usr/local/include/Stonefish/core/Robot.h \
+ /usr/local/include/Stonefish/joints/Joint.h \
  /usr/local/include/Stonefish/core/SimulationApp.h \
  /usr/local/include/Stonefish/core/Console.h \
  /usr/include/SDL2/SDL_thread.h /usr/include/SDL2/SDL_atomic.h \
