@@ -44,7 +44,7 @@ StonefishRL::StonefishRL(const std::string& path, double frequency)
 }   
 
 
-// Destructor
+// Destructor (INUTIL)
 StonefishRL::~StonefishRL() {
     std::cout << "[INFO] StonefishRL destructor called.\n";
     // En principi SimulationManager, s'encarrega de netejar els objectes que 
@@ -53,7 +53,7 @@ StonefishRL::~StonefishRL() {
     // Stonefish ho hauríem d'eliminar aqui.
 }
 
-
+// (INUTIL) pq ho acabarem fent amb un setRobotPosition
 void StonefishRL::Reset() {
 
     std::cout << "Vaig a dormir una mica" << std::endl;
@@ -78,32 +78,43 @@ void StonefishRL::Reset() {
 }
 
 
-void StonefishRL::RecieveInstructions() {
+std::string StonefishRL::RecieveInstructions() {
 
     zmq::message_t request;
 
     // Esperar a rebre el missatge
     auto result = socket.recv(request, zmq::recv_flags::none);
 
-    if(!result.has_value()) {
-        std::cerr << "[StonefishRL] No message received." << std::endl;
-        return;
-    }
-
     // Convertir el missatge (que esta en un buffer) a string i mostrar-lo
     std::string cmd = request.to_string();
     std::cout << "[ZMQ] He rebut: (" << result.value() << " bytes) en la comanda: " << cmd << std::endl;
 
-    if(cmd == "RESET") {
+    size_t pos = cmd.find(":"); // Agafa fins al 1r ":" que es troba.
+    std::string prefix = cmd.substr(0, pos); // Es queda amb el que ha de fer la comanda
+    cmd = cmd.substr(pos + 1); // El +1 és per eliminar el ":"
+
+    if(prefix == "RESET") {
         std::cout << "[ZMQ] He rebut RESET\n";
+        
+        sf::Vector3 pos(10.0, 10.0, 10.0);
+        std::cout << "FINS AQUI NO PETO\n";
+        SetRobotPosition(cmd, pos);
+
         socket.send(zmq::buffer("RESET OK"), zmq::send_flags::none);
+        return "RESET";
     }
-    else if (cmd == "EXIT"){
+    else if (prefix == "EXIT"){
         std::cout << "[ZMQ] He rebut EXIT\n";
         socket.send(zmq::buffer("EXIT OK"), zmq::send_flags::none);
+        return "EXIT";
+    }
+    else if (prefix == "CMD"){
+        ApplyCommands(cmd); 
+        return "CMD";
     }
     else {
-        ApplyCommands(cmd); 
+        std::cout << "[ERROR] UPS! Something was not written correctly in the command.\n";
+        return "INVALID";
     }
 }
 
@@ -133,57 +144,6 @@ void StonefishRL::SendObservations(){
 
 
 void StonefishRL::ApplyCommands(const std::string &str_cmds) {
-
-    /*CommandData cmds = ConvertStringToMap(str_cmds);
- 
-    unsigned int id = 0;
-    sf::Actuator* actuator_ptr;
-
-    while((actuator_ptr = getActuator(id++)) != nullptr) {
-        
-        
-        // Si han escrit el nom malament, que no el detecti. Perque ara mateix els esta agafant tots igualment. 
-        // T'indica que has posat el nom malament pero t'agafa tots els sensors igualment, perque ho busca per 
-        // la llista de ids.
-        std::string actuator_name = actuator_ptr->getName();
-
-        if()
-
-        if(cmds.commands.find(actuator_name) != cmds.commands.end()){
-
-            switch (actuator_ptr->getType()) {
-
-                case sf::ActuatorType::SERVO:
-                {
-                    // Mira si al mapa 
-                    if(commands_.count(actuator_name) > 0 && sf::Servo* servo = dynamic_cast<sf::Servo*>(actuator_ptr);){
-
-                        for
-
-                        if(commands_[actuator_name][])
-                        servo->setControlMode(sf::ServoControlMode::VELOCITY);
-                        std::cout << "[INFO] Servo actuator found: " << servo->getName() << std::endl;
-                        std::cout << "[ApplyCommands] Target for " << servo->getName() << " = " << cmds.commands[servo->getName()] << std::endl;
-                        servo->setDesiredVelocity(cmds.commands[servo->getName()]);
-
-                        std::cout << "La posicio (l'angle) a la que es troba: " << servo->getName() << " abans d'aplicar el setDesiredPosition(...) es: " << servo->getPosition() << std::endl;
-                    
-                        servo->setControlMode(sf::ServoControlMode::POSITION);
-                        servo->setDesiredPosition(); // Va de pi a -pi el rang de possibles valors
-                    
-                        std::cout << "La nova posicio (l'angle) a la que es troba: " << servo->getName() << " després d'aplicar el setDesiredPosition(...) es: " << servo->getPosition() << std::endl;
-
-                    }
-                    break;
-                }
-                            
-                default:
-                    std::cout << "[WARN] Actuator type not supported.\n";
-                    break;
-            
-            }
-        }
-    }*/
 
     // Assigna els nous valors a l'estructura 
     // que tenim als atributs de la classe StonefishRL.
@@ -466,5 +426,28 @@ void StonefishRL::ConvertStringToUnorderedMap(std::string str){
                 std::cerr << "[ERROR] Invalid value for " << actuator_name << ":" << action << " --> '" << token << "'\n";
             }
         }
+    }
+}
+
+// ARA mateix està fent com si fes 1 step
+void StonefishRL::SetRobotPosition(const std::string &cmd, sf::Vector3 new_pos)
+{
+    sf::Robot* robot_ptr;
+    unsigned int id = 0;
+
+    std::string robot_name = cmd;
+    robot_name.erase(0, cmd.find(":") + 1);  // Borra abans de ':'
+    robot_name.erase(robot_name.find(";"));  // Borra des de ';'
+
+    std::cout << "[INFO] Estic apunt d'entrar al bucle amb el robot: " << robot_name << std::endl;
+
+    while((robot_ptr = getRobot(id++)) != nullptr && robot_ptr->getName() == robot_name){
+        std::cout << "[INFO] H entrat al bucle el robot: " << robot_name << std::endl;
+        sf::Quaternion rotation = sf::IQ(); // No volem rotació, per això agafem "IQ" = Matriu Identitat
+        sf::Transform tf(rotation, new_pos);
+
+
+        tf.setOrigin(new_pos);
+        robot_ptr->Respawn(this, tf);
     }
 }

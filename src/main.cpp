@@ -35,6 +35,7 @@ int learning(void* data) {
     // Start the simulation (includes building the scenario)
     simApp.StartSimulation();
     int contador = 0;
+    std::string nextStepSim;
 
     while(simApp.getState() != sf::SimulationState::FINISHED)
     {
@@ -43,17 +44,19 @@ int learning(void* data) {
         std::cout << "-----------------------  STARTING STEP: " << contador << "  ------------------------------" << std::endl; 
         std::cout << "---------------------------------------------------------------------------- \n";
         
-        myManager->RecieveInstructions();
-       
-        simApp.StepSimulation();
+        nextStepSim = myManager->RecieveInstructions();
         
-        myManager->SendObservations();
+        if(nextStepSim == "CMD"){
+            simApp.StepSimulation();
         
-        //std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
-                                                                    // Si el posem a 1, va una mica massa ràpid, però acceptable.
+            myManager->SendObservations();
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
+                                                                    // Si el posem a 1, va una mica ràpid, però acceptable.
                                                                     // Si el deixem a 10, potser és un xic lent, però veus bé les trajectories que fa.
-
-        contador++;
+        
+        if(nextStepSim == "CMD") contador++;
+        else if(nextStepSim == "EXIT" || nextStepSim == "RESET") contador = 0; 
 
         std::cout << "[INFO] Simulation time: " << simManager->getSimulationTime() << " seconds." << std::endl;
         std::cout << "[INFO] Step " << contador << " completed." << std::endl;

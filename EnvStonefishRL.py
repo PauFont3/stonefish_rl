@@ -42,12 +42,12 @@ while True:
 
     if option == "1": 
 
-        commands = "Acrobot/Servo:POSITION:2.1;Acrobot/Servo2:VELOCITY:2.0;"
+        commands = "CMD:Acrobot/Servo:POSITION:2.1;Acrobot/Servo2:TORQUE:5.0;"
 
-        for step in range(1000000):
+        for step in range(30000):
             
-            if(step > 30000):
-                commands = "Acrobot/Servo:POSITION:2.1;Acrobot/Servo2:VELOCITY:5.0;"
+            if(step > 20000):
+                commands = "CMD:Acrobot/Servo:POSITION:2.1;Acrobot/Servo2:VELOCITY:2.0;"
             
             print(f"[Python] Step {step + 1}\n")
 
@@ -59,7 +59,7 @@ while True:
     elif option == "2":
 
         print("[Python] Enviant Reset a StonefishRL")
-        socket.send_string("RESET")
+        socket.send_string("RESET:Acrobot;")
         obs = socket.recv_string()
         print("[Python] RESET DONE. WHAT NEXT?.")  
 

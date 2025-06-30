@@ -54,29 +54,34 @@
             <parent name="Ball"/>
             <child name="Cylinder1"/>
             <origin xyz="0.0 0.0 0.1" rpy="0.0 0.0 0.0"/>
+          <!--  <axis xyz="0.0 1.0 0.0"/> -->
             <axis xyz="0.0 1.0 0.0"/>
+
         </joint>
 
         <joint name="Joint2" type="revolute">
             <parent name="Cylinder1"/>
             <child name="Cylinder2"/>
-            <origin xyz="0.0 0.0 1.1" rpy="0.0 0.0 0.0"/>
+            <origin xyz="0.0 0.0 0.7" rpy="0.0 0.0 0.0"/>
+          <!--  <axis xyz="1.0 0.0 0.0"/> -->
             <axis xyz="1.0 0.0 0.0"/>
+
         </joint>
 
         <actuator name="Servo" type="servo">
           <!-- El max_velocity diria que no està fent res, pq estem utilitzant un RotaryEncoder però hem de mantenir els dos pq si a la comanda es
-               crida VELOCITY o TORQUE pot fer petar el programa si el que s'ha cridat no té definit un limit de Velocitat o de Torque. -->
+               crida VELOCITY o TORQUE pot fer petar el programa si no té definit un limit de Velocitat o de Torque. -->
           <!-- Amb un max_torque de 100.0, el "Servo" no arriba a la posició desitjada, hauriem de posar almenys un max_torque de 1000.0
                Si posem un max_torque elevat a "Servo", arriba més ràpidament a la posició inidicada -->
-            <controller position_gain="1.0" velocity_gain="1.0" max_torque="1000.0" max_velocity="1000.0"/> <!-- Linea necessaria, sinó peta -->
+            <controller position_gain="1.0" velocity_gain="10.0" max_torque="1000.0" max_velocity="1000.0"/> <!-- Linea necessaria, sinó peta -->
             <joint name="Joint1"/>
             <initial position="0.2"/> <!-- Posició a la que aniran si no es diu res o es passa malament el nom de la comanda POSITION -->
         </actuator>
 
         <actuator name="Servo2" type="servo">
+            <!-- El velocity_gain a 10 fa que arribi més ràpid a la posició determinada. -->
             <!-- El max_velocity diria que no està fent res, pq segueix girant com un locu si posem només un max_torque elevat. -->
-            <controller position_gain="1.0" velocity_gain="1.0" max_torque="100.0" max_velocity="10.0"/> <!-- Linea necessaria, sinó peta -->
+            <controller position_gain="1.0" velocity_gain="10.0" max_torque="100.0" max_velocity="100.0"/> <!-- Linea necessaria, sinó peta -->
             <joint name="Joint2"/>
             <initial position="0.2"/> <!-- Posició a la que aniran si no es diu res o es passa malament el nom de la comanda POSITION -->
         </actuator>

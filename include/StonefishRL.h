@@ -29,13 +29,15 @@ public:
 
     // Metodes per la interface de RL
     void Reset();
-    void RecieveInstructions();
+    std::string RecieveInstructions();
     void SendObservations();
     void ApplyCommands(const std::string &str_cmds);
     std::map<std::string, std::vector<float>> getScalarObservations();
 
     CommandData ConvertStringToMap(std::string str);
     void ConvertStringToUnorderedMap(std::string str);
+
+    void SetRobotPosition(const std::string &cmd, sf::Vector3 new_pos);
 
 protected:
     // Override del mètode de BuildScenario de sf::SimulationManager
