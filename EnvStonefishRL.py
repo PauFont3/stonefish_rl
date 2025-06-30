@@ -1,5 +1,32 @@
 import zmq
-import time
+
+"""""
+class EnvStonefishRL(gym.Env):
+
+    def __init__(self):
+    # OPCIO 1:
+        context = zmq.Context()
+        socket = context.socket(zmq.REQ)
+        socket.connect("tcp://localhost:5555")
+    # OPCIO 2:    
+        self.context = zmq.Context()
+        self.socket = self.context.socket(zmq.REQ)
+        self.socket.connect("tcp://localhost:5555")
+    # Faltara definir 'action_space' i 'observation_space' 
+    
+
+    def close():
+        socket.send_string("EXIT")
+        _ = socket.recv_string() # (OPCIONAL) Esperar a rebre alguna confirmació de que el simulador s'ha tancat
+        socket.close()
+        context.term()
+
+
+    # Probablement fara falta passar algun paramatre a la funció "reset()" com un 'State' o algu 
+    def reset():
+        
+        return 0
+"""""
 
 context = zmq.Context()
 socket = context.socket(zmq.REQ)
@@ -15,12 +42,12 @@ while True:
 
     if option == "1": 
 
-        commands = "Acrobot/Servo:POSITION:1.0;Acrobot/Servo2:POSITION:2.5"
+        commands = "Acrobot/Servo:POSITION:2.1;Acrobot/Servo2:VELOCITY:2.0;"
 
         for step in range(1000000):
             
-            if(step > 2000):
-                commands = "Acrobot/Servo:VELOCITY:0.0;Acrobot/Servo2:VELOCITY:0.0"
+            if(step > 30000):
+                commands = "Acrobot/Servo:POSITION:2.1;Acrobot/Servo2:VELOCITY:5.0;"
             
             print(f"[Python] Step {step + 1}\n")
 

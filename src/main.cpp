@@ -38,17 +38,18 @@ int learning(void* data) {
 
     while(simApp.getState() != sf::SimulationState::FINISHED)
     {
-
+    
+        std::cout << "\n\n---------------------------------------------------------------------------- \n";
+        std::cout << "-----------------------  STARTING STEP: " << contador << "  ------------------------------" << std::endl; 
+        std::cout << "---------------------------------------------------------------------------- \n";
+        
         myManager->RecieveInstructions();
        
         simApp.StepSimulation();
         
-        std::cout << std::endl << "----------------  STARTING STEP: " << contador << "  ----------------" << std::endl; 
-        std::cout << "------------------------------------------------------" << std::endl;
-            
         myManager->SendObservations();
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
+        //std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
                                                                     // Si el posem a 1, va una mica massa ràpid, però acceptable.
                                                                     // Si el deixem a 10, potser és un xic lent, però veus bé les trajectories que fa.
 

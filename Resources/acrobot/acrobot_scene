@@ -61,27 +61,24 @@
             <parent name="Cylinder1"/>
             <child name="Cylinder2"/>
             <origin xyz="0.0 0.0 1.1" rpy="0.0 0.0 0.0"/>
-            <axis xyz="0.0 1.0 0.0"/>
+            <axis xyz="1.0 0.0 0.0"/>
         </joint>
 
         <actuator name="Servo" type="servo">
-          <!-- Com més alts siguin els valors més temps tardarà en aturar-se -->
-            <controller position_gain="1.0" velocity_gain="100.0" max_torque="1000.0" max_velocity="1000.0"/> <!-- Necessari, sino peta -->
+          <!-- El max_velocity diria que no està fent res, pq estem utilitzant un RotaryEncoder però hem de mantenir els dos pq si a la comanda es
+               crida VELOCITY o TORQUE pot fer petar el programa si el que s'ha cridat no té definit un limit de Velocitat o de Torque. -->
+          <!-- Amb un max_torque de 100.0, el "Servo" no arriba a la posició desitjada, hauriem de posar almenys un max_torque de 1000.0
+               Si posem un max_torque elevat a "Servo", arriba més ràpidament a la posició inidicada -->
+            <controller position_gain="1.0" velocity_gain="1.0" max_torque="1000.0" max_velocity="1000.0"/> <!-- Linea necessaria, sinó peta -->
             <joint name="Joint1"/>
-            <initial position="0.2"/>
+            <initial position="0.2"/> <!-- Posició a la que aniran si no es diu res o es passa malament el nom de la comanda POSITION -->
         </actuator>
 
         <actuator name="Servo2" type="servo">
-          <!--  position_gain: Es torna locu quan més gran és el valor, quan més o menys ha arribat a la posició és com que es passa, intenta rectificar, pero després es torna a passar i aixi succesicament.
-                               Amb més de 150.000 steps fetes, encara estava fent el locu intentant arribar a la posició.
-                velocity_gain: Com més alt el valor, sembla que més dificil és de moure, arriba més lent a la posició indicada, sembla com que li costi més arribar al punt indicat. 
-                max_torque: Com més petit el valor menys força té per arribar a l'objectiu, inclus pot ser que amb un valor molt petit no tingui prou força per arribar-hi.
-                max_velocity: En aquest casi que no ens afecta, el pq suposu que deu ser pel fet que estem utilitzant un RotaryEncoder, i aquest al aplicar casi tot amb radiants, 
-                              potser només té en compte el max_torque i el max_velocity potser afecta més directament a algun altre tipus d'actuadors. -->
-           
-            <controller position_gain="1.0" velocity_gain="100.0" max_torque="1000.0" max_velocity="1000.0"/> <!-- Necessari, sino peta -->
+            <!-- El max_velocity diria que no està fent res, pq segueix girant com un locu si posem només un max_torque elevat. -->
+            <controller position_gain="1.0" velocity_gain="1.0" max_torque="100.0" max_velocity="10.0"/> <!-- Linea necessaria, sinó peta -->
             <joint name="Joint2"/>
-            <initial position="0.2"/>
+            <initial position="0.2"/> <!-- Posició a la que aniran si no es diu res o es passa malament el nom de la comanda POSITION -->
         </actuator>
     
         <sensor name="Encoder" type="encoder">

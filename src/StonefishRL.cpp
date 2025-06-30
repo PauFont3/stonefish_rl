@@ -192,6 +192,9 @@ void StonefishRL::ApplyCommands(const std::string &str_cmds) {
     unsigned int id = 0;
     sf::Actuator* actuator_ptr;
 
+    std::cout << "\n---------------------------------------------------------------------------- \n";
+    std::cout << "-                       FUNCTION APPLYCOMMANDS (ACTUATORS)                 - \n";
+
     while ((actuator_ptr = getActuator(id++)) != nullptr) {
     
         std::string actuator_name = actuator_ptr->getName();
@@ -208,19 +211,21 @@ void StonefishRL::ApplyCommands(const std::string &str_cmds) {
                         std::cout << "[WARNING] Not converted " << actuator_name << " to sf::Servo.\n";
                         break;
                     }
-
+                    
                     // Ha trobat el SERVO, busca tots els parametres (VELOCITY, POSITION, ...) que té el Servo.
                     for(const auto& [action, action_value] : commands_[actuator_name])
                     {
-                        std::cout << "[INFO] Nom de l'actuador al qual intentem aplicar la velocitat " << actuator_name << std::endl;
-                        if(action == "VELOCITY") 
+                        
+                        if(action == "VELOCITY" || action == "TORQUE") 
                         {
+                            std::cout << "---------------------------------------------------------------------------- \n";
                             servo->setControlMode(sf::ServoControlMode::VELOCITY);
                             servo->setDesiredVelocity(action_value);
-                            std::cout << "[Servo] Set VELOCITY = " << action_value << " from " << actuator_name << "\n";
+                            std::cout << "[Servo] Set VELOCITY = " << action_value << " for " << actuator_name << "\n";
                         }
-                        else if (action == "POSITION") // El rang de valors va de pi a -pi
+                        else if (action == "POSITION" ) // El rang de valors va de pi a -pi
                         {  
+                            std::cout << "---------------------------------------------------------------------------- \n";
                             std::cout << "[Servo] Actual position of " << actuator_name << " = " << servo->getPosition() << "\n";
                             servo->setControlMode(sf::ServoControlMode::POSITION);
                             std::cout << "[Servo] New incoming POSITION = " << action_value << " for " << actuator_name << "\n";
@@ -228,12 +233,6 @@ void StonefishRL::ApplyCommands(const std::string &str_cmds) {
                             //servo->setDesiredVelocity(100.0); // Diria que no afecte en res. Pq si posem un valor més alt o més baix es comporta igual.
                             servo->setDesiredPosition(action_value); // Aquest es el que realment ens marca a quina posicio volem deixar l'acrobot.
                             std::cout << "[Servo] Reached POSITION = " << servo->getPosition() << " for " << actuator_name << "\n";
-                        }
-                        else if(action == "TORQUE") 
-                        {
-                            servo->setControlMode(sf::ServoControlMode::TORQUE);
-                            servo->setMaxTorque(action_value);
-                            std::cout << "[Servo] Set MAX TORQUE = " << action_value << " from " << actuator_name << "\n";
                         }
                         else 
                         {
@@ -318,9 +317,11 @@ std::map<std::string, std::vector<float>> StonefishRL::getScalarObservations() {
     sf::Robot* robot_ptr;
     sf::Actuator* actuator_ptr;
 
+    std::cout << "\n---------------------------------------------------------------------------- \n";
+    std::cout << "-                       FUNCTION GETSCALAROBSERVATIONS                     - \n";
+    std::cout << "---------------------------------------------------------------------------- \n";
 
     unsigned int id = 0;
-    std::cout << "------------ ROBOTS ------------" << std::endl;
     while((robot_ptr = getRobot(id++)) != nullptr){
         
         sf::Transform position = robot_ptr->getTransform();
@@ -329,16 +330,16 @@ std::map<std::string, std::vector<float>> StonefishRL::getScalarObservations() {
         float eix_y = origin.getY();
         float eix_z = origin.getZ();
 
-        std::cout << "[COORDENADES] Posició del robot " << robot_ptr->getName() << " en el frame 'World' del robot : EIX X: " << eix_x << " EIX Y: " << eix_y << " EIX Z: " << eix_z << std::endl;
-    }
-
+        std::cout << "[ROBOT][COORDENADES] Posició del robot " << robot_ptr->getName() << " en el frame 'World' del robot : EIX X: " 
+                  << eix_x << " EIX Y: " << eix_y << " EIX Z: " << eix_z << std::endl;
+    } std::cout << std::endl;
+    
 
     id = 0;
-    std::cout << "------------ SENSORS ------------" << std::endl;
     while((sensor_ptr = getSensor(id++)) != nullptr) 
     {
         if(!sensor_ptr->isNewDataAvailable()) {
-            std::cout << "[WARN] No new data available for sensor: " << sensor_ptr->getName() << std::endl;
+            std::cout << "[SENSOR][WARN] No new data available for sensor: " << sensor_ptr->getName() << std::endl;
             continue;
         }
 
@@ -355,23 +356,23 @@ std::map<std::string, std::vector<float>> StonefishRL::getScalarObservations() {
 
             for(unsigned int i = 0; i < scalar_sensor->getNumOfChannels(); i++) {
                 sensor_values.push_back(static_cast<float>(lastSample.getValue(i)));
-                std::cout << "[CHANNEL] Nom del canal "<< i << ": " << scalar_sensor->getSensorChannelDescription(i).name << std::endl;
+                std::cout << "[SENSOR][CHANNEL] Nom del canal "<< i << ": " << scalar_sensor->getSensorChannelDescription(i).name << std::endl;
             }
             sensorData[sensor_ptr->getName()] = std::move(sensor_values);
         }
 
         sensor_ptr->MarkDataOld(); // Marcar dades com antigues per evitar duplicats, no se si realment està fent
-    }
+    } std::cout << std::endl;
+    
     
     id = 0;
-    std::cout << "------------ ACTUATORS ------------" << std::endl;
     while((actuator_ptr = getActuator(id++)) != nullptr) {
         if(actuator_ptr->getType() == sf::ActuatorType::SERVO){
             sf::Servo* servo_ptr = dynamic_cast<sf::Servo*>(actuator_ptr);
-            std::cout << "[INFO] ACTUATOR: " << actuator_ptr->getName() << " is in POSITION: " << servo_ptr->getPosition() << std::endl;
-            std::cout << "[INFO] ACTUATOR: " << actuator_ptr->getName() << " is with VELOCITY: " << servo_ptr->getVelocity() << std::endl;
+            std::cout << "[ACTUATOR][INFO] Name: " << actuator_ptr->getName() << " is in POSITION: " << servo_ptr->getPosition() << std::endl;
+            std::cout << "[ACTUATOR][INFO] Name: " << actuator_ptr->getName() << " is with VELOCITY: " << servo_ptr->getVelocity() << std::endl ;
         }
-    }
+    } std::cout << std::endl;
 
     return sensorData;
 }
