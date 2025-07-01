@@ -1,3 +1,0 @@
-/home/ubuntu/stonefish_rl/build/CMakeFiles/StonefishRLTest.dir
-/home/ubuntu/stonefish_rl/build/CMakeFiles/edit_cache.dir
-/home/ubuntu/stonefish_rl/build/CMakeFiles/rebuild_cache.dir
