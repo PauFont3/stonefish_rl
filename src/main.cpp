@@ -36,8 +36,10 @@ int learning(void* data) {
     simApp.StartSimulation();
     int contador = 0;
     std::string nextStepSim;
+    bool finish = false;
 
-    while(simApp.getState() != sf::SimulationState::FINISHED)
+    //while(simApp.getState() != sf::SimulationState::FINISHED)
+    while(!finish)
     {
     
         std::cout << "\n\n---------------------------------------------------------------------------- \n";
@@ -46,27 +48,30 @@ int learning(void* data) {
         
         nextStepSim = myManager->RecieveInstructions();
         
-        if(nextStepSim == "CMD"){
+        if(nextStepSim == "CMD" || nextStepSim == "RESET"){
+            
             simApp.StepSimulation();
-        
-            myManager->SendObservations();
+            if(nextStepSim == "CMD"){
+                myManager->SendObservations();
+                contador++;
+            }
+            else contador = 0;
         }
+        
+        else if(nextStepSim == "EXIT") finish = true;
+        
         std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
                                                                     // Si el posem a 1, va una mica ràpid, però acceptable.
                                                                     // Si el deixem a 10, potser és un xic lent, però veus bé les trajectories que fa.
-        
-        if(nextStepSim == "CMD") contador++;
-        else if(nextStepSim == "EXIT" || nextStepSim == "RESET") contador = 0; 
 
         std::cout << "[INFO] Simulation time: " << simManager->getSimulationTime() << " seconds." << std::endl;
-        std::cout << "[INFO] Step " << contador << " completed." << std::endl;
-            
+    /*   
         sf::SimulationState state = simApp.getState();
         if(state == sf::SimulationState::FINISHED) { std::cout << "[INFO] Simulation finished." << std::endl; }
         else if(state == sf::SimulationState::STOPPED) { std::cout << "[INFO] Simulation stopped." << std::endl; }
         else if(state == sf::SimulationState::RUNNING) { std::cout << "[INFO] Simulation is running." << std::endl; }
         else if(state == sf::SimulationState::NOT_READY) { std::cout << "[INFO] Simulation is not ready." << std::endl; }
-
+    */
     }
 
     std::cout << "[INFO] Learning thread finished after " << contador << " steps." << std::endl;
