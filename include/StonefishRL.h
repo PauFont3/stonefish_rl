@@ -37,12 +37,11 @@ public:
     CommandData ConvertStringToMap(std::string str);
     void ConvertStringToUnorderedMap(std::string str);
 
-    void SetRobotPosition(std::string cmd, const float* position_data, size_t n_param);
+    bool SetRobotPosition(std::string cmd, const float* position_data, size_t n_param);
 
 protected:
     // Override del mètode de BuildScenario de sf::SimulationManager
     void BuildScenario() override;
-
 
 private:
     

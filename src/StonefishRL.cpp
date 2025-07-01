@@ -108,9 +108,15 @@ std::string StonefishRL::RecieveInstructions()
 
             const float* data = static_cast<const float*>(reset_position.data());
 
-            SetRobotPosition(cmd, data, n_floats);
-
-            socket.send(zmq::buffer("RESET OK"), zmq::send_flags::none);
+            if(SetRobotPosition(cmd, data, n_floats))
+            {
+                socket.send(zmq::buffer("RESET OK"), zmq::send_flags::none);
+            }
+            else 
+            {
+                std::string message = "NOT ABLE TO FIND THE ROBOT BY THE GIVEN NAME: " + cmd.erase(cmd.find(";")); 
+                socket.send(zmq::buffer(message), zmq::send_flags::none);
+            }
         }
         else {
             std::cerr << "[C++] Not enough floats (at least 3), provided: " << n_floats << "\n";
@@ -475,16 +481,17 @@ void StonefishRL::ConvertStringToUnorderedMap(std::string str)
     }
 }
 
-void StonefishRL::SetRobotPosition(std::string robot_name, const float* position_data, size_t n_param)
+bool StonefishRL::SetRobotPosition(std::string robot_name, const float* position_data, size_t n_param)
 {
     sf::Robot *robot_ptr;
+    bool robot_found = false;
     unsigned int id = 0;
 
     robot_name.erase(robot_name.find(";")); // Borra el ';'
 
-
     while ((robot_ptr = getRobot(id++)) != nullptr && robot_ptr->getName() == robot_name)
     {
+        robot_found = true;
         sf::Transform tf;
         sf::Vector3 new_position(position_data[0], position_data[1], position_data[2]);
         tf.setOrigin(new_position); // Mou el robot a la posició indicada
@@ -497,4 +504,5 @@ void StonefishRL::SetRobotPosition(std::string robot_name, const float* position
 
         robot_ptr->Respawn(this, tf);
     }
+    return robot_found;
 }

@@ -79,7 +79,7 @@ while not stop:
  
         # Rebre confirmació de C++
         resposta = socket.recv_string()
-        print("[Python] RESET DONE. StonefishRL ha dit: ", resposta)
+        print("[Python] StonefishRL ha dit:", resposta)
 
     elif option == "3":
 
