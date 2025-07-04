@@ -36,10 +36,8 @@ int learning(void* data) {
     simApp.StartSimulation();
     int contador = 0;
     std::string nextStepSim;
-    bool finish = false;
 
-    //while(simApp.getState() != sf::SimulationState::FINISHED)
-    while(!finish)
+    while(nextStepSim != "EXIT")
     {
     
         std::cout << "\n\n---------------------------------------------------------------------------- \n";
@@ -58,24 +56,15 @@ int learning(void* data) {
             else contador = 0;
         }
         
-        else if(nextStepSim == "EXIT") finish = true;
-        
         std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
                                                                     // Si el posem a 1, va una mica ràpid, però acceptable.
                                                                     // Si el deixem a 10, potser és un xic lent, però veus bé les trajectories que fa.
 
         std::cout << "[INFO] Simulation time: " << simManager->getSimulationTime() << " seconds." << std::endl;
-    /*   
-        sf::SimulationState state = simApp.getState();
-        if(state == sf::SimulationState::FINISHED) { std::cout << "[INFO] Simulation finished." << std::endl; }
-        else if(state == sf::SimulationState::STOPPED) { std::cout << "[INFO] Simulation stopped." << std::endl; }
-        else if(state == sf::SimulationState::RUNNING) { std::cout << "[INFO] Simulation is running." << std::endl; }
-        else if(state == sf::SimulationState::NOT_READY) { std::cout << "[INFO] Simulation is not ready." << std::endl; }
-    */
     }
 
     std::cout << "[INFO] Learning thread finished after " << contador << " steps." << std::endl;
- 
+    myManager->ExitRequest();
     return 0;
 }
 
@@ -105,9 +94,8 @@ int main(int argc, char **argv) {
     SDL_Thread* learningThread = SDL_CreateThread(learning, "learningThread", &data);
 
     app.Run(false, false, sf::Scalar(1/frequency));
-    std::cout << "[INFO] Simulation finished." << std::endl;
+    //std::cout << "[INFO] Simulation finished." << std::endl;
 
-    int status {0};
-    SDL_WaitThread(learningThread, &status);
-    return status;
+    SDL_WaitThread(learningThread, nullptr);
+    return 0;
 }
