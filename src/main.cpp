@@ -94,7 +94,6 @@ int main(int argc, char **argv) {
     SDL_Thread* learningThread = SDL_CreateThread(learning, "learningThread", &data);
 
     app.Run(false, false, sf::Scalar(1/frequency));
-    //std::cout << "[INFO] Simulation finished." << std::endl;
 
     SDL_WaitThread(learningThread, nullptr);
     return 0;

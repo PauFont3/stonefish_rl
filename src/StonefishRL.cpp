@@ -5,9 +5,14 @@
 #include <chrono>
 #include <string>
 #include <vector>
+#include <sstream> // Per poder construir el JSON de les observacions
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
+
+#include <zmq.hpp> 
+
+//#include <nlohmann/json.hpp> // Pel JSON
 
 // Includes per SENSORS
 #include <Stonefish/sensors/Sensor.h>
@@ -79,7 +84,6 @@ void StonefishRL::Reset()
 
 std::string StonefishRL::RecieveInstructions()
 {
-
     zmq::message_t request;
 
     // Esperar a rebre el missatge
@@ -101,8 +105,10 @@ std::string StonefishRL::RecieveInstructions()
 
         // Rebre els valors de les posicions de reset que s'han enviat
         zmq::message_t reset_position;
-        auto merda = socket.recv(reset_position, zmq::recv_flags::none);
 
+        // Sino faig una assignacio em dona un warning.
+        auto merda = socket.recv(reset_position, zmq::recv_flags::none);
+        
         int n_floats = reset_position.size() / sizeof(float);
         
         if(n_floats >= 3){
@@ -150,15 +156,9 @@ void StonefishRL::SendObservations()
     StateScene scalar_observations = GetStateScene();
     
     // Convertir les observacions a string
-    std::string obs_str;
-    for (const auto& obs : scalar_observations.observations)
-    {
-        obs_str += "\n  [INFO] Nom objecte: " + obs.name + " => Angle [rad]: ";
-        obs_str += std::to_string(obs.angle);
-        obs_str += " , Velocitat Angular [rad/s]: " + std::to_string(obs.angular_velocity); // Per separar els valors
-    }
+    std::string obs_str_json = SerializeScene(scalar_observations.observations);
 
-    socket.send(zmq::buffer(obs_str), zmq::send_flags::none);
+    socket.send(zmq::buffer(obs_str_json), zmq::send_flags::none);
 }
 
 void StonefishRL::ApplyCommands(const std::string& str_cmds)
@@ -176,7 +176,6 @@ void StonefishRL::ApplyCommands(const std::string& str_cmds)
 
     while ((actuator_ptr = getActuator(id++)) != nullptr)
     {
-
         std::string actuator_name = actuator_ptr->getName();
 
         // Només continuem la iteració si hi ha commands per l'actuador que estem mirant
@@ -301,12 +300,13 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
             //sf::Transform position = robot_ptr->getTransform();
             //sf::Vector3 origin = position.getOrigin(); 
             sf::Vector3 origin = robot_ptr->getTransform().getOrigin();
-            
-            Observation obs;
-            obs.name = robot_name; 
-            obs.position.x = origin.getX();
-            obs.position.y = origin.getY();
-            obs.position.z = origin.getZ();
+
+            Pose obs;
+            FillWithNanPose(obs);
+            obs.name = robot_name;
+            obs.position[0] = origin.getX();
+            obs.position[1] = origin.getY();
+            obs.position[2] = origin.getZ();
   
             state.observations.push_back(obs);
         } 
@@ -316,25 +316,28 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
     while ((sensor_ptr = getSensor(id++)) != nullptr)
     {
         std::string sensor_name = sensor_ptr->getName();
-        
+
         if (ObjImportantForObs(sensor_name))
         {
             if (sensor_ptr->getType() == sf::SensorType::JOINT)
             {
                 sf::ScalarSensor *scalar_sensor = dynamic_cast<sf::ScalarSensor *>(sensor_ptr);
                 if (!scalar_sensor) continue;
-
-                Observation obs;
+                
+                Pose obs; // El poso aqui pq cada cop que es troba un objecte nou, no pugui tenir cap possible dada de l'anterior
+                FillWithNanPose(obs);
                 obs.name = sensor_name;
-                for (unsigned int i = 0; i < scalar_sensor->getNumOfChannels(); i++){
-                    
+                for (unsigned int i = 0; i < scalar_sensor->getNumOfChannels(); i++)
+                {
                     float value = scalar_sensor->getLastSample().getValue(i);
+
                     std::string channel_name = scalar_sensor->getSensorChannelDescription(i).name;
 
                     if (channel_name == "Angle") obs.angle = value;
                     else if (channel_name == "Angular velocity") obs.angular_velocity = value;
                     else std::cout << "[WARN] Channel named: " << channel_name << " is not controlled.\n";
                 }
+
                 state.observations.push_back(obs);
             }
         }   
@@ -351,7 +354,8 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
                 sf::Servo *servo_ptr = dynamic_cast<sf::Servo *>(actuator_ptr);
                 if (!servo_ptr) continue;
                 
-                Observation obs;
+                Pose obs;
+                FillWithNanPose(obs);
                 obs.name = actuator_ptr->getName();
 
                 obs.angle = servo_ptr->getPosition();
@@ -432,9 +436,7 @@ void StonefishRL::ParseCommandsAndObservations(const std::string& str)
     commands_.clear();
     relevant_obs_names_.clear();
 
-    // Exemple Comanda: "CMD:Robot1/Servo:POSITION:3.5;Robot2/Servo:VELOCITY:2.0;OBS:Robot1,Robot2"
-    //                  "CMD:Robot1/Servo:POSITION:3.5;OBS:" --> Mostra les observacions de tots els objectes de l'escena
-    size_t obs_pos = str.find("OBS:");
+    int obs_pos = str.find("OBS:");
     
     if (obs_pos == std::string::npos) {
         std::cerr << "[WARN] Missing 'OBS:' in the command string.\n";
@@ -529,15 +531,17 @@ bool StonefishRL::ObjImportantForObs(const std::string& objName) const {
 void StonefishRL::MostrarValors() {
     std::cout << "[INFO] MOSTRAR ELS VALORS RECOLLITS:\n";
     
-    for( int i = 0; i < current_state_.observations.size(); i++){
-        
+    for( int i = 0; i < current_state_.observations.size(); i++)
+    {    
         std::cout << "  --------  " << std::endl;
-       
-        std::cout << "[INFO][" << current_state_.observations[i].name << "] "
-                  << "Position: X[" << current_state_.observations[i].position.x <<"],"
-                  << " Y[" << current_state_.observations[i].position.y <<"],"
-                  << " Z[" << current_state_.observations[i].position.z <<"]" << std::endl;
+        std::cout << "[INFO][" << current_state_.observations[i].name << "] \n";
         
+        if(current_state_.observations[i].position.size() >= 3) 
+        {
+            std::cout << "[INFO] Position: X[" << current_state_.observations[i].position[0] <<"],"
+                      << " Y[" << current_state_.observations[i].position[1] <<"],"
+                      << " Z[" << current_state_.observations[i].position[2] <<"]" << std::endl;
+        }        
         std::cout << "[INFO] Angle: " << current_state_.observations[i].angle << "." << std::endl;
         std::cout << "[INFO] Angular velocity: " << current_state_.observations[i].angular_velocity << "." << std::endl;
         std::cout << "[INFO] Linear Velocity: " << current_state_.observations[i].linear_velocity << "." << std::endl;
@@ -548,8 +552,10 @@ void StonefishRL::MostrarValors() {
     std::cout << std::endl;
 
     std::cout << "[INFO] MOSTRAR ELS COMMANDS APLICATS:\n";
-    for(const auto& [actuator_name, actions] : commands_){
-        for (const auto& [action_name, value] : actions) {
+    for(const auto& [actuator_name, actions] : commands_)
+    {
+        for (const auto& [action_name, value] : actions) 
+        {
             std::cout << "  --------  " << std::endl;
             std::cout << "[INFO] Actuator name: " << actuator_name << std::endl;
             std::cout << "[INFO] Action: " << action_name << std::endl;
@@ -561,21 +567,65 @@ void StonefishRL::MostrarValors() {
     std::cout << std::endl;
 
     std::cout << "\n--- OBJECTS IN NEED TO BE OBSERVED ---" << std::endl;
-    for (const auto& name : relevant_obs_names_) {
-        if(sensors_.count(name) > 0 || actuators_.count(name) > 0){
-            std::cout << "[INFO] " << name << std::endl;
-        }
-        else if(actuators_.count(name) > 0) {
-            std::cout << "[INFO] " << name << " is an actuator in the scenario." << std::endl;
-        }
-        else if(robots_.count(name) > 0) {
-            std::cout << "[INFO] " << name << " is a robot in the scenario." << std::endl;
-        }
-        else {
-            std::cout << "[WARN] " << name << " is not a sensor, actuator or robot in the scenario." << std::endl;
-        }
+    for (const auto& name : relevant_obs_names_) 
+    {
+        if(sensors_.count(name) > 0 || actuators_.count(name) > 0) std::cout << "[INFO] " << name << std::endl;
+        else if(actuators_.count(name) > 0) std::cout << "[INFO] " << name << " is an actuator in the scenario." << std::endl;
+        else if(robots_.count(name) > 0) std::cout << "[INFO] " << name << " is a robot in the scenario." << std::endl;
+        else std::cout << "[WARN] " << name << " is not a sensor, actuator or robot in the scenario." << std::endl;
     }
 }
 
 
+std::string StonefishRL::PoseToJson(const Pose& pose)
+{
+    std::ostringstream oss;
+    oss << "{"
+        // << "\"name\": \"" << pose.name << "\", " NO CAL, pq el nom ja es passa en la clau del diccionari 
+        << "\"position\": [" <<  SafeFloat(pose.position[0]) << ", "
+        << SafeFloat(pose.position[1]) << ", "
+        << SafeFloat(pose.position[2]) << "], "
+        << "\"angle\": " << SafeFloat(pose.angle) << ", "
+        << "\"angular_velocity\": " << SafeFloat(pose.angular_velocity) << ", "
+        << "\"linear_velocity\": " << SafeFloat(pose.linear_velocity)
+        << "}";
+    return oss.str();
+}
 
+std::string StonefishRL::EscapeJson(const std::string& s) {
+    std::ostringstream oss;
+    oss << "\"";
+    for (char c : s) {
+        switch (c) {
+            case '\"': oss << "\\\""; break;
+            case '\\': oss << "\\\\"; break;
+            default: oss << c;
+        }
+    }
+    oss << "\"";
+    return oss.str();
+}
+
+std::string StonefishRL::SerializeScene(const std::vector<Pose>& poses) {
+    std::ostringstream oss;
+    oss << "{";
+    for (size_t i = 0; i < poses.size(); i++) {
+        oss << EscapeJson(poses[i].name) << ":" << PoseToJson(poses[i]);
+        if (i < poses.size() - 1) oss << ",";
+    }
+    oss << "}";
+    return oss.str();
+}
+
+void StonefishRL::FillWithNanPose(Pose& pose) {
+    pose.position.resize(3, NAN);
+    pose.angle = NAN;
+    pose.linear_velocity = NAN;
+    pose.angular_velocity = NAN;
+}
+
+// Pq el python ho pugui interpretar com un valor buit
+std::string StonefishRL::SafeFloat(float val) {
+    if (std::isnan(val)) return "null";
+    else return std::to_string(val);
+}
