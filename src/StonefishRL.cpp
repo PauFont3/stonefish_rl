@@ -87,6 +87,7 @@ std::string StonefishRL::RecieveInstructions()
     zmq::message_t request;
 
     // Esperar a rebre el missatge
+    // Rep "RESET:Acrobot;"
     auto result = socket.recv(request, zmq::recv_flags::none);
 
     // Convertir el missatge (que esta en un buffer) a string i mostrar-lo
@@ -117,13 +118,15 @@ std::string StonefishRL::RecieveInstructions()
 
             if(SetRobotPosition(cmd, data, n_floats))
             {
-                socket.send(zmq::buffer("RESET OK"), zmq::send_flags::none);
+                SendObservations();
             }
             else 
             {
                 std::string message = "NOT ABLE TO FIND THE ROBOT BY THE GIVEN NAME: " + cmd.erase(cmd.find(";")); 
                 socket.send(zmq::buffer(message), zmq::send_flags::none);
             }
+            
+
             return "RESET";
         }
         else {
@@ -152,13 +155,13 @@ std::string StonefishRL::RecieveInstructions()
 
 void StonefishRL::SendObservations()
 {
-    MostrarValors();
     StateScene scalar_observations = GetStateScene();
-    
+    MostrarValors();
     // Convertir les observacions a string
     std::string obs_str_json = SerializeScene(scalar_observations.observations);
-
-    socket.send(zmq::buffer(obs_str_json), zmq::send_flags::none);
+    std::cout << "[ZMQ] Enviant observacions: " << obs_str_json << "\n";
+    
+    this->socket.send(zmq::buffer(obs_str_json), zmq::send_flags::none);
 }
 
 void StonefishRL::ApplyCommands(const std::string& str_cmds)
@@ -281,7 +284,6 @@ void StonefishRL::BuildScenario()
 
 StonefishRL::StateScene StonefishRL::GetStateScene()
 {
-    //std::map<std::string, std::vector<float>> sensorData;
     sf::Sensor *sensor_ptr;
     sf::Robot *robot_ptr;
     sf::Actuator *actuator_ptr;
@@ -296,9 +298,8 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
     {
         std::string robot_name = robot_ptr->getName();
         
-        if(ObjImportantForObs(robot_name)){
-            //sf::Transform position = robot_ptr->getTransform();
-            //sf::Vector3 origin = position.getOrigin(); 
+        if(ObjImportantForObs(robot_name))
+        {
             sf::Vector3 origin = robot_ptr->getTransform().getOrigin();
 
             Pose obs;
@@ -566,7 +567,7 @@ void StonefishRL::MostrarValors() {
 
     std::cout << std::endl;
 
-    std::cout << "\n--- OBJECTS IN NEED TO BE OBSERVED ---" << std::endl;
+    //std::cout << "\n--- OBJECTS IN NEED TO BE OBSERVED ---" << std::endl;
     for (const auto& name : relevant_obs_names_) 
     {
         if(sensors_.count(name) > 0 || actuators_.count(name) > 0) std::cout << "[INFO] " << name << std::endl;

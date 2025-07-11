@@ -13,8 +13,6 @@
 #include <Stonefish/sensors/Sensor.h> 
 
 #include <zmq.hpp> // Per la comunicació amb Python
-//#include <nlohmann/json.hpp> 
-
 
 class StonefishRL : public sf::SimulationManager {
 public:
