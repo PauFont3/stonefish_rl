@@ -5,32 +5,34 @@ env = AcrobotEnv()
 
 # Reset de l'entorn
 obs, info = env.reset()
-print("Observación inicial:", obs)
-
-# Executa 5 passos de proba
+terminated = False
+truncated = False
+#print("Observación inicial:", obs)
 
 total_reward = 0
-for i in range(20000):
+while not (terminated or truncated): # Quan un dels 2 sigui True sortira del bucle
 
-    # Escull una opció aleatoria
     action = env.action_space.sample()
     obs, reward, terminated, truncated, info = env.step(action)
     
-    total_reward += reward
+    if truncated: 
+        obs, info = env.reset()
 
-    print(f"\n--- STEP {i+1} ---")
+    total_reward += reward
+    
+    print("Step: ", env.step_counter)
     print(f"Action: {action} (Torque: {[-1000.0, 0.0, 1000.0][action]})")
     print("Observation:", obs)
     print("Reward:", reward)
     print("Total Reward:", total_reward)
     print("Terminated:", terminated, "| Truncated:", truncated)
+    print("\n\n")
    
     
     if terminated: #or truncated:
-        print("\n OBJETIU ASSOLIT! Resetejant entorn...")
+        print("\n OBJECTIU ASSOLIT! Resetejant entorn...")
         observation, info = env.reset()
         total_reward = 0 
-        time.sleep(0.1)
+        #time.sleep(0.1)
         
-
 env.close()

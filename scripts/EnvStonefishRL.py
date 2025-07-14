@@ -16,8 +16,6 @@ class EnvStonefishRL(gym.Env):
 
         self.state = {} # Diccionari amb tota la informació 
 
-        #self.message = []
-
         # Tindra els noms dels objectes de l'escena calsssificats segons el tipus q siguin
         self.robots = []
         self.actuators = []
@@ -66,7 +64,7 @@ class EnvStonefishRL(gym.Env):
 
     def build_command(self, command_dict):
         """
-        Construeix un string CMD  a partir d'un diccionari de commands
+        Construeix un string CMD a partir d'un diccionari de commands
         """
         parts = []
         for actuator, params in command_dict.items():
@@ -79,12 +77,12 @@ class EnvStonefishRL(gym.Env):
         """
         Envia una comanda al simulador StonefishRL
         """
-        print(f"[CONN] Enviant comanda: {message}")
+        #print(f"[CONN] Enviant comanda: {message}")
         self.socket.send_string(message)
 
         # Espera rebre una resposta del simulador
         response = self.socket.recv_string()
-        print(f"[CONN] Resposta rebuda de StonefishRL: {response}")
+        #print(f"[CONN] Resposta rebuda de StonefishRL: {response}")
         return response
 
 
@@ -98,9 +96,9 @@ class EnvStonefishRL(gym.Env):
     # Cal el "*, seed=None, options=None)" ?
     def reset(self, seed=None, options=None):
         
-        x = random.uniform(-5.0, 5.0)
-        y = random.uniform(-5.0, 5.0)
-        z = random.uniform(-5.0, 5.0)
+        x = random.uniform(-3.0, -3.0)
+        y = random.uniform(-3.0, -3.0)
+        z = random.uniform(-3.0, -3.0)
         roll = random.uniform(-3.14, 3.14)
         pitch = random.uniform(-3.14, 3.14)
         yaw = random.uniform(-3.14, 3.14)
@@ -162,34 +160,25 @@ class EnvStonefishRL(gym.Env):
             
         return actuators, sensors, robots
 
-    # FALTARA DEFINAR UNA FUNCIÓ STEP EN AQUESTA CLASSE TAMBÉ
-    # Fara arribar la comanda que volen fer al step al simulador.
-    #def step(self):
+
+    def step(self, message, steps):
         """
         Envia les accions al simulador i rep les observacions
         - action: Array amb les accions que es vol fer a cada actuador
         """
-
-        commands = "CMD:Acrobot/Servo:POSITION:2.9;Acrobot/Servo2:TORQUE:5.0;"
-        obs_objects = "OBS:"
-        message = commands + obs_objects
-
-        for step in range(1000):
-            if(step > 20000):
-                commands = "CMD:Acrobot/Servo:POSITION:2.1;Acrobot/Servo2:VELOCITY:2.0;OBS:"
-            
-            print(f"[INFO] Step {step + 1}\n")
-
+        for i in range(steps):
+            #print (f"[INFO] Fent el pas {i+1}/{steps}")
             msg = self.send_command(message)
+
+        # Processar l'ultim estat rebut
+        self._process_and_update_state(msg)
         
-        self._process_and_update_state(msg)  
 
     
     def print_full_state(self):
         """
         Mostra tots els valors que hi ha al diccionari
         """
-
         print("[DEBUG] Dins de 'self.state' hi ha :")
         for obj_name, attributes in self.state.items():
             print(f" - {obj_name}")
