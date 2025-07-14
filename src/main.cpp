@@ -39,28 +39,34 @@ int learning(void* data) {
 
     while(nextStepSim != "EXIT")
     {
-    
         std::cout << "\n\n---------------------------------------------------------------------------- \n";
         std::cout << "-----------------------  STARTING STEP: " << contador << "  ------------------------------" << std::endl; 
         std::cout << "---------------------------------------------------------------------------- \n";
         
         nextStepSim = myManager->RecieveInstructions();
         
+        float time0 = simManager->getSimulationTime();
+        
         if(nextStepSim == "CMD" || nextStepSim == "RESET"){
-            
             simApp.StepSimulation();
             if(nextStepSim == "CMD"){
                 myManager->SendObservations();
                 contador++;
             }
             else contador = 0;
+
         }
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
+        //std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
                                                                     // Si el posem a 1, va una mica ràpid, però acceptable.
                                                                     // Si el deixem a 10, potser és un xic lent, però veus bé les trajectories que fa.
-
-        std::cout << "[INFO] Simulation time: " << simManager->getSimulationTime() << " seconds." << std::endl;
+        float time1 = simManager->getSimulationTime();
+        
+        float delta_time = time1 - time0;
+        float steps_per_second = 1.0 / delta_time;
+        
+        std::cout << "[INFO] Delta Time = " << delta_time << " segons" << std::endl;
+        std::cout << "[INFO] Steps per second: " << steps_per_second << std::endl;
     }
 
     std::cout << "[INFO] Learning thread finished after " << contador << " steps." << std::endl;

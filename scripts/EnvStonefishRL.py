@@ -1,6 +1,7 @@
 import zmq
 import json
 import struct
+import random
 import gymnasium as gym
 from gymnasium import spaces
 
@@ -60,17 +61,28 @@ class EnvStonefishRL(gym.Env):
         
         return self.state
 
+
+    def build_command(self, command_dict):
+        """
+        Construeix un string CMD a partir d'un diccionari de commands
+        """
+        parts = []
+        for actuator, params in command_dict.items():
+            for param_name, value in params.items():
+                parts.append(f"{actuator}:{param_name}:{value}")
+        return "CMD:" + ";".join(parts) + ";OBS:"
+
     
     def send_command(self, message):
         """
         Envia una comanda al simulador StonefishRL
         """
-        print(f"[INFO] Enviant comanda: {message}")
+        print(f"[CONN] Enviant comanda: {message}")
         self.socket.send_string(message)
 
         # Espera rebre una resposta del simulador
         response = self.socket.recv_string()
-        print(f"Resposta rebuda de StonefishRL: {response}")
+        print(f"[CONN] Resposta rebuda de StonefishRL: {response}")
         return response
 
 
@@ -81,13 +93,21 @@ class EnvStonefishRL(gym.Env):
         print("[INFO] SIMULACIÓ ACABADA.")  
 
 
-    def reset(self, *, seed=None, options=None):
+    # Cal el "*, seed=None, options=None)" ?
+    def reset(self, seed=None, options=None):
         
+        x = random.uniform(-5.0, 0.0)
+        y = random.uniform(-5.0, 0.0)
+        z = random.uniform(-5.0, 0.0)
+        roll = random.uniform(-3.14, 3.14)
+        pitch = random.uniform(-3.14, 3.14)
+        yaw = random.uniform(-3.14, 3.14)
+
         obs = self.send_command("RESET:Acrobot;")
         print("[INFO] StonefishRL diu: ", obs)
 
         # Carregar valors de la posició on anirà el robot al fer el RESET
-        valors = [-3.0, -4.0, -5.0, 2.0, 2.0, 2.0] # Podem afegir les rotacions
+        valors = [-x,y,z, roll, pitch, yaw] 
         tipus_format = "f" * len(valors) # Posa a float tots els valors que hi ha al vector 'valors'
         novesPosicions = struct.pack(tipus_format, *valors)
         
@@ -164,45 +184,11 @@ class EnvStonefishRL(gym.Env):
 
     
     def print_full_state(self):
+        """
+        Mostra tots els valors que hi ha al diccionari
+        """
         print("[DEBUG] Dins de 'self.state' hi ha :")
         for obj_name, attributes in self.state.items():
             print(f" - {obj_name}")
             for attr, value in attributes.items():
                 print(f"    -> {attr}: {value}")
-
-
-
-#if __name__ == "__main__":
- #   stop = False
- #   env = EnvStonefishRL()
-
- #   while not stop:
-  #      print("\n--- MENU ---")
-  #      print("1. Send ApplyCommands")
-  #      print("2. Send Reset")
-  #      print("3. Exit Simulation")
-  #      print("4. Print Dictionary")
-  #      print("5. Print Objects by type")
-
-  #      option = input("Select an option: ")
-
-  #      if option == "1": 
-  #          # Exemple Comanda: "CMD:Robot1/Servo:POSITION:3.5;Robot2/Servo:VELOCITY:2.0;OBS:Robot1,Robot2"
-  #          #                  "CMD:Robot1/Servo:POSITION:3.5;OBS:" --> Mostra les observacions de tots els objectes de l'escena
-  #          env.step()
-  #      
-  #      elif option == "2":
-
-  #          env.reset()
-  #          env.print_full_state()
-
-  #      elif option == "3":
-  #          stop = True
-  #          env.close()
-  #          print("[INFO] S'ha tancat la simulació.")
-
-  #      elif option == "4":
-  #          env.print_full_state()
-
-  #      elif option == "5":
-  #          env.list_objects_by_type()

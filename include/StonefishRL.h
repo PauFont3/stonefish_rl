@@ -33,20 +33,17 @@ public:
         std::vector<Pose> observations;
     };
 
-
     // Constructor
     StonefishRL(const std::string& path, double frequency);
 
-    // Destructor
-    ~StonefishRL(); 
-
     // Metodes per la interface de RL
-    void Reset();
     std::string RecieveInstructions();
+    
     void SendObservations();
+    
     void ApplyCommands(const std::string& str_cmds);
+    
     StateScene GetStateScene();
-    //std::vector<float> StateToVector(const StateScene& state); // Ns si cal, diria q per ara no
 
     void ParseCommandsAndObservations(const std::string& str);
 
@@ -86,8 +83,6 @@ private:
     std::map<std::string, std::map<std::string, float>> commands_; // Valors que s'aplicaran als actuadors.
     StateScene current_state_; // Representa l'ultim estat observat de l'entorn
     
-    // std::vector<std::string> ordered_names_; // Ens pot servir per quan utilitzem "Box", Finalment potser no ens caldra.
-
     zmq::context_t context; // Context per ZeroMQ
     zmq::socket_t socket; // Socket per ZeroMQ
 };

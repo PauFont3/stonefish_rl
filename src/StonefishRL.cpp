@@ -48,39 +48,6 @@ StonefishRL::StonefishRL(const std::string &path, double frequency)
     InitializeZMQ();
 }
 
-// Destructor (INUTIL)
-StonefishRL::~StonefishRL()
-{
-    std::cout << "[INFO] StonefishRL destructor called.\n";
-    // En principi SimulationManager, s'encarrega de netejar els objectes que
-    // s'han afegit (actuadors, sensors, ...).
-    // Si s'hagues assignat alguna cosa dinamicament que NO es gestionada per
-    // Stonefish ho hauríem d'eliminar aqui.
-}
-
-// (INUTIL) pq ho acabarem fent amb un setRobotPosition
-void StonefishRL::Reset()
-{
-
-    std::cout << "Vaig a dormir una mica" << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    std::cout << "pta vida ja m'han despertat" << std::endl;
-
-    std::cout << "[StonefishRL] Resetting scenario...\n";
-    sensors_.clear(); 
-    actuators_.clear();
-
-    std::cout << "Ojo q faig boom\n";
-    this->RestartScenario();
-
-    std::cout << "[StonefishRL] Scenario restarted OK\n";
-
-    // RestartScenario ja conté:
-    //      - DestroyScenario();
-    //      - InitializeSolver();
-    //      - InitializeScenario();
-    //      - BuildScenario();
-}
 
 std::string StonefishRL::RecieveInstructions()
 {
@@ -567,7 +534,6 @@ void StonefishRL::MostrarValors() {
 
     std::cout << std::endl;
 
-    //std::cout << "\n--- OBJECTS IN NEED TO BE OBSERVED ---" << std::endl;
     for (const auto& name : relevant_obs_names_) 
     {
         if(sensors_.count(name) > 0 || actuators_.count(name) > 0) std::cout << "[INFO] " << name << std::endl;
@@ -582,7 +548,6 @@ std::string StonefishRL::PoseToJson(const Pose& pose)
 {
     std::ostringstream oss;
     oss << "{"
-        // << "\"name\": \"" << pose.name << "\", " NO CAL, pq el nom ja es passa en la clau del diccionari 
         << "\"position\": [" <<  SafeFloat(pose.position[0]) << ", "
         << SafeFloat(pose.position[1]) << ", "
         << SafeFloat(pose.position[2]) << "], "
