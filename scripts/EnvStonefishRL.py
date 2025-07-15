@@ -57,7 +57,7 @@ class EnvStonefishRL(gym.Env):
         self.state = obs_dict
 
         # Actualitza les llistes de robots, actuadors i sensors
-        self.robots, self.actuators, self.sensors = self.list_objects_by_type()
+        #self.robots, self.actuators, self.sensors = self.list_objects_by_type()
         
         return self.state
 
@@ -96,15 +96,17 @@ class EnvStonefishRL(gym.Env):
     # Cal el "*, seed=None, options=None)" ?
     def reset(self, seed=None, options=None):
         
-        x = random.uniform(-3.0, -3.0)
-        y = random.uniform(-3.0, -3.0)
-        z = random.uniform(-3.0, -3.0)
+        x = random.uniform(-4.0, -4.0)
+        y = random.uniform(-4.0, -4.0)
+        z = random.uniform(-4.0, -4.0)
         roll = random.uniform(-3.14, 3.14)
         pitch = random.uniform(-3.14, 3.14)
         yaw = random.uniform(-3.14, 3.14)
+        
+
 
         obs = self.send_command("RESET:Acrobot;")
-        print("[INFO] StonefishRL diu: ", obs)
+        #print("[INFO] StonefishRL diu: ", obs)
 
         # Carregar valors de la posició on anirà el robot al fer el RESET
         valors = [-x,y,z, roll, pitch, yaw] 
@@ -117,7 +119,7 @@ class EnvStonefishRL(gym.Env):
         
         self._process_and_update_state(msg)
         
-        self.print_full_state()
+        #self.print_full_state()
 
         return self.state
     

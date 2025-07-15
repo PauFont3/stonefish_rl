@@ -22,6 +22,7 @@
 #include <Stonefish/sensors/scalar/IMU.h>
 #include <Stonefish/sensors/scalar/RotaryEncoder.h>
 #include <Stonefish/sensors/vision/Camera.h>
+#include <Stonefish/sensors/scalar/Pose.h>
 
 // Includes per ACTUADORS
 #include <Stonefish/actuators/Servo.h>
@@ -290,23 +291,73 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
             if (sensor_ptr->getType() == sf::SensorType::JOINT)
             {
                 sf::ScalarSensor *scalar_sensor = dynamic_cast<sf::ScalarSensor *>(sensor_ptr);
-                if (!scalar_sensor) continue;
-                
-                Pose obs; // El poso aqui pq cada cop que es troba un objecte nou, no pugui tenir cap possible dada de l'anterior
-                FillWithNanPose(obs);
-                obs.name = sensor_name;
-                for (unsigned int i = 0; i < scalar_sensor->getNumOfChannels(); i++)
-                {
-                    float value = scalar_sensor->getLastSample().getValue(i);
+                if(scalar_sensor->getScalarSensorType() == sf::ScalarSensorType::ENCODER){
+                    if (!scalar_sensor) continue;
+                    
+                    Pose obs; // El poso aqui pq cada cop que es troba un objecte nou, no pugui tenir cap possible dada de l'anterior
+                    FillWithNanPose(obs);
+                    obs.name = sensor_name;
+                    for (unsigned int i = 0; i < scalar_sensor->getNumOfChannels(); i++)
+                    {
+                        float value = scalar_sensor->getLastSample().getValue(i);
 
-                    std::string channel_name = scalar_sensor->getSensorChannelDescription(i).name;
+                        std::string channel_name = scalar_sensor->getSensorChannelDescription(i).name;
 
-                    if (channel_name == "Angle") obs.angle = value;
-                    else if (channel_name == "Angular velocity") obs.angular_velocity = value;
-                    else std::cout << "[WARN] Channel named: " << channel_name << " is not controlled.\n";
+                        if (channel_name == "Angle") obs.angle = value;
+                        else if (channel_name == "Angular velocity") obs.angular_velocity = value;
+                        else std::cout << "[WARN] Channel named: " << channel_name << " is not controlled.\n";
+                    }
+                    state.observations.push_back(obs);
                 }
+            }
 
-                state.observations.push_back(obs);
+            else if(sensor_ptr->getType() == sf::SensorType::LINK)
+            {
+                sf::ScalarSensor *odo_sensor = dynamic_cast<sf::ScalarSensor *>(sensor_ptr);
+                   
+                if(odo_sensor->getScalarSensorType() == sf::ScalarSensorType::ODOM){
+                    if(!odo_sensor) continue;
+
+                    float rot_x = odo_sensor->getLastSample().getValue(6);
+                    float rot_y = odo_sensor->getLastSample().getValue(7); 
+                    float rot_z = odo_sensor->getLastSample().getValue(8);
+                    float rot_w = odo_sensor->getLastSample().getValue(9);
+
+                    Pose obs;
+                    FillWithNanPose(obs);
+                    obs.name = sensor_name;
+                    obs.position[0] = odo_sensor->getLastSample().getValue(0);
+                    obs.position[1] = odo_sensor->getLastSample().getValue(1);
+                    obs.position[2] = odo_sensor->getLastSample().getValue(2);
+
+                    for (unsigned int i = 0; i < odo_sensor->getNumOfChannels(); i++)
+                    {
+                        std::string channel_name = odo_sensor->getSensorChannelDescription(i).name;
+
+                        std::cout << sensor_name << std::endl;
+
+                        std::cout << "\n[INFORMATION] Value " << i << ": " << channel_name; 
+
+                        std::cout << std::endl;
+                    
+                    }
+                    state.observations.push_back(obs);
+                }
+                
+                //sf::Transform position_pose = pose_sensor->getSensorFrame();
+                //sf::Vector3 origin = position_pose.getOrigin();
+//
+                //Pose obs;
+                //FillWithNanPose(obs);
+                //obs.name = sensor_name;
+//
+                //std::cout << "[INFORMATION] Sensor name: " << sensor_name << std::endl;
+                //std::cout << "[INFORMATION] Pose Sensor name: " << pose_sensor-> << std::endl;
+//
+                //obs.position[0] = origin.getX();
+                //obs.position[1] = origin.getY();
+                //obs.position[2] = origin.getZ();
+    //
             }
         }   
     }
@@ -349,53 +400,7 @@ void StonefishRL::InitializeZMQ()
         std::cerr << "[ZMQ ERROR] " << e.what() << "\n";
     }
 }
-/*
-StonefishRL::CommandData StonefishRL::ConvertStringToMap(const std::string str)
-{
 
-    StonefishRL::CommandData result;
-
-    std::string input = str;
-    input.erase(std::remove(input.begin(), input.end(), '\n'), input.end());
-
-    std::istringstream iss(str);
-    std::string token;
-
-    while (std::getline(iss, token, ';'))
-    {
-
-        if (token.empty())
-            continue;
-
-        size_t pos = token.find(":"); // Busca la posicio del ":"
-
-        if (pos == std::string::npos)
-        {
-            std::cerr << "[ERROR] Invalid command format: " << token << ". Expected format: 'actuator_name:value'." << std::endl;
-            continue;
-        }
-
-        // Separar nom i valor
-        std::string name = token.substr(0, pos);       // Agafa el que hi ha abans dels ":"
-        std::string value_str = token.substr(pos + 1); // Agafa el que hi ha dps dels ":"
-
-        float value = std::stof(value_str); // Convertir a float
-
-        if (!(actuators_.count(name)))
-        {
-            std::cerr << "[ERROR] Actuator '" << name << "' not found in the scenario." << std::endl;
-            std::cout << "DINS FUNCIÓ: Estic guardant al mapa amb nom: " << name << " el valor de: " << value << std::endl;
-
-            continue; // Si l'actuador no existeix, salta al seguent
-        }
-
-        result.commands[name] = static_cast<float>(value);
-        std::cout << "Estic guardant al mapa amb nom: " << name << " el valor de: " << value << std::endl;
-    }
-
-    return result;
-}
-*/
 
 void StonefishRL::ParseCommandsAndObservations(const std::string& str)
 {

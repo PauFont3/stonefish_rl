@@ -20,19 +20,20 @@ while not (terminated or truncated): # Quan un dels 2 sigui True sortira del buc
 
     total_reward += reward
     
-    print("Step: ", env.step_counter)
+    print("\n Step: ", env.step_counter)
     print(f"Action: {action} (Torque: {[-1000.0, 0.0, 1000.0][action]})")
     print("Observation:", obs)
     print("Reward:", reward)
     print("Total Reward:", total_reward)
     print("Terminated:", terminated, "| Truncated:", truncated)
-    print("\n\n")
    
-    
-    if terminated: #or truncated:
-        print("\n OBJECTIU ASSOLIT! Resetejant entorn...")
+    if terminated:
+        print("OBJECTIU ASSOLIT!!! Resetejant entorn...\n")
         observation, info = env.reset()
         total_reward = 0 
-        #time.sleep(0.1)
+    
+    if truncated:
+        print("TRUNCATED: S'han fet 500 passos")
+        obs, info = env.reset()
         
 env.close()
