@@ -93,13 +93,11 @@ class AcrobotEnv(EnvStonefishRL):
         theta2 = arctan2(obs[3], obs[2])
 
         # Funció que dona el reward
-        #height = -self.LINK_LENGTH_1 * cos(theta1) - self.LINK_LENGTH_2 * cos(theta1 + theta2)
+        height = -self.LINK_LENGTH_1 * cos(theta1) - self.LINK_LENGTH_2 * cos(theta1 + theta2)
         #terminated = bool(-cos(theta1) - cos(theta2 + theta1) > 1.9)
         #terminated = bool(-self.LINK_LENGTH_1 * cos(theta1) - self.LINK_LENGTH_2 * cos(theta1 + theta2) > 0.5)
 
-        terminated = (
-            abs(theta1 - pi) < 0.1 and abs(theta2) < 0.1
-        )
+        terminated = bool(height > self.LINK_LENGTH_1)
 
         #valor = -self.LINK_LENGTH_1 * cos(theta1) - self.LINK_LENGTH_2 * cos(theta1 + theta2)
         valor_terminated = (-cos(theta1) - cos(theta2 + theta1))

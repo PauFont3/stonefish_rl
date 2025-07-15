@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<scenario>
+    <solver>
+    </solver>
+
+    <environment>
+        <ned latitude="0.0" longitude="0.0"/>
+    </environment>
+
+    <materials>
+        <material name="Steel" density="7891.0" restitution="0.9"/>
+        <friction_table>
+            <friction material1="Steel" material2="Steel" static="0.4" dynamic="0.1"/>
+        </friction_table>
+    </materials>
+
+    <looks>
+        <look name="Green" rgb="0.0 1.0 0.0" roughness="0.5"/>
+        <look name="Yellow" rgb="1.0 1.0 0.0" roughness="0.5"/>
+        <look name="Blue" rgb="0.0 0.0 1.0" roughness="0.5"/>
+        <look name="Gray" gray="0.5" roughness="0.5"/>
+    </looks>
+
+    <static name="Floor" type="plane">
+        <material name="Steel"/>
+        <look name="Gray"/>
+        <world_transform xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    </static>
+
+    <!-- Robot 1 -->
+    <robot name="Acrobot" fixed="true" self_collisions="false">
+        <base_link name="Ball" type="sphere" physics="surface">
+            <dimensions radius="0.1"/>
+            <origin xyz="0.0 0.0 -1.0" rpy="0.0 0.0 0.0"/>
+            <material name="Steel"/>
+            <look name="Green"/>
+        </base_link>
+
+        <link name="Cylinder1" type="cylinder" physics="surface">
+            <dimensions radius="0.05" height="1.0"/>
+            <origin xyz="0.0 0.0 -0.5" rpy="0.0 0.0 0.0"/> <!-- No tocar, ja està ben posicionat -->
+            <material name="Steel"/>
+            <look name="Green"/>
+        </link>
+
+        <link name="Cylinder2" type="cylinder" physics="surface">
+            <dimensions radius="0.05" height="1.0"/>
+            <!-- <origin xyz="0.0 0.0 1.0" rpy="0.0 0.0 0.0"/> -->
+            <origin xyz="0.0 0.0 -0.5" rpy="0.0 0.0 0.0"/>
+            <material name="Steel"/>
+            <look name="Yellow"/>
+        </link>
+<!--
+        <link name="OdoMarker" type="sphere" physics="surface">
+            <dimensions radius="0.01"/>
+            <origin xyz="0.0 0.0 0.9" rpy="0.0 0.0 0.0"/>
+            <material name="Steel"/>
+            <look name="Blue"/>
+        </link>
+-->
+
+        <joint name="Joint1" type="revolute">
+            <parent name="Ball"/>
+            <child name="Cylinder1"/>
+            <!-- <origin xyz="0.0 0.0 0.1" rpy="0.0 0.0 0.0"/> -->
+            <origin xyz="0.0 0.0 -1.0" rpy="0.0 0.0 0.0"/> <!-- No tocar, ja està ben posicionat -->
+            <axis xyz="0.0 1.0 0.0"/>
+            <!-- <axis xyz="0.0 0.0 1.0"/> -->
+        </joint>
+
+        <joint name="Joint2" type="revolute">
+            <parent name="Cylinder1"/>
+            <child name="Cylinder2"/>
+            <!-- <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/> -->
+            <origin xyz="0.0 0.0 -1.0" rpy="0.0 0.0 0.0"/> <!-- No tocar, ja està ben posicionat -->
+            <axis xyz="0.0 1.0 0.0"/>
+        </joint>
+<!--
+        <joint name="OdoJoint" type="fixed">
+            <parent name="Cylinder2"/>
+            <child name="OdoMarker"/>
+            <origin xyz="0.0 0.0 0.5" rpy="0.0 0.0 0.0"/>  No tocar, ja està ben posicionat 
+        </joint>
+-->
+    <!--    <actuator name="Servo" type="servo">
+           El max_velocity diria que no està fent res, pq estem utilitzant un RotaryEncoder però hem de mantenir els dos pq si a la comanda es
+               crida VELOCITY o TORQUE pot fer petar el programa si no té definit un limit de Velocitat o de Torque. -->
+          <!-- Amb un max_torque de 100.0, el "Servo" no arriba a la posició desitjada, hauriem de posar almenys un max_torque de 1000.0
+               Si posem un max_torque elevat a "Servo", arriba més ràpidament a la posició inidicada -->
+    <!--        <controller position_gain="1.0" velocity_gain="1.0" max_torque="1000.0" max_velocity="1000.0"/>  Linea necessaria, sinó peta 
+            <joint name="Joint1"/>
+          <initial position="0.2"/>    Posició a la que aniran si no es diu res o es passa malament el nom de la comanda POSITION 
+        </actuator>
+    -->
+        <actuator name="Servo2" type="servo">
+            <!-- El velocity_gain a 10 fa que arribi més ràpid a la posició determinada. -->
+            <!-- El max_velocity diria que no està fent res, pq segueix girant com un locu si posem només un max_torque elevat. -->
+            <controller position_gain="1.0" velocity_gain="1.0" max_torque="100.0" max_velocity="100.0"/> <!-- Linea necessaria, sinó peta -->
+            <joint name="Joint2"/>
+          <!--   <initial position="0.2"/> Posició a la que aniran si no es diu res o es passa malament el nom de la comanda POSITION -->
+        </actuator>
+    
+        <sensor name="Encoder" type="encoder">
+            <joint name="Joint1"/>
+        </sensor>
+
+        <sensor name="Encoder2" type="encoder">
+            <joint name="Joint2"/>
+        </sensor>
+
+        <sensor name ="Odometry" type="odometry" rate="30.0">
+            <origin xyz="0.0 0.0 -1.0" rpy="0.0 0.0 0.0"/> <!-- No tocar, ja està ben posicionat -->
+            <link name="Cylinder2"/>
+        </sensor>
+
+        <world_transform xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    </robot>
+
+    <!-- Robot 2 -->
+    <robot name="CylinderBot" fixed="false" self_collisions="false">
+        <base_link name="CylBase" type="cylinder" physics="surface">
+            <dimensions radius="0.09" height="0.4"/>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <material name="Steel"/>
+            <look name="Blue"/>
+        </base_link>
+        <world_transform xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    </robot>
+
+</scenario>

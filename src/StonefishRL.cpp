@@ -330,34 +330,8 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
                     obs.position[1] = odo_sensor->getLastSample().getValue(1);
                     obs.position[2] = odo_sensor->getLastSample().getValue(2);
 
-                    for (unsigned int i = 0; i < odo_sensor->getNumOfChannels(); i++)
-                    {
-                        std::string channel_name = odo_sensor->getSensorChannelDescription(i).name;
-
-                        std::cout << sensor_name << std::endl;
-
-                        std::cout << "\n[INFORMATION] Value " << i << ": " << channel_name; 
-
-                        std::cout << std::endl;
-                    
-                    }
                     state.observations.push_back(obs);
                 }
-                
-                //sf::Transform position_pose = pose_sensor->getSensorFrame();
-                //sf::Vector3 origin = position_pose.getOrigin();
-//
-                //Pose obs;
-                //FillWithNanPose(obs);
-                //obs.name = sensor_name;
-//
-                //std::cout << "[INFORMATION] Sensor name: " << sensor_name << std::endl;
-                //std::cout << "[INFORMATION] Pose Sensor name: " << pose_sensor-> << std::endl;
-//
-                //obs.position[0] = origin.getX();
-                //obs.position[1] = origin.getY();
-                //obs.position[2] = origin.getZ();
-    //
             }
         }   
     }

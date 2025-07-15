@@ -95,13 +95,13 @@ class EnvStonefishRL(gym.Env):
 
     # Cal el "*, seed=None, options=None)" ?
     def reset(self, seed=None, options=None):
-        
-        x = random.uniform(-4.0, -4.0)
-        y = random.uniform(-4.0, -4.0)
-        z = random.uniform(-4.0, -4.0)
-        roll = random.uniform(-3.14, 3.14)
-        pitch = random.uniform(-3.14, 3.14)
-        yaw = random.uniform(-3.14, 3.14)
+        super().reset()
+        x = random.uniform(-0.2, 0.2)
+        y = random.uniform(-0.2, 0.2)
+        z = random.uniform(-4.2, -3.8)
+        roll = random.uniform(-0.2, 0.2)
+        pitch = random.uniform(-0.2, 0.2)
+        yaw = random.uniform(-3.14, -3.10)
         
 
 
