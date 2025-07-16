@@ -46,18 +46,21 @@ int learning(void* data) {
         nextStepSim = myManager->RecieveInstructions();
         
         float time0 = simManager->getSimulationTime();
-        
-        if(nextStepSim == "CMD" || nextStepSim == "RESET"){
+
+        if(nextStepSim == "CMD")
+        {
             simApp.StepSimulation();
             if(nextStepSim == "CMD"){
                 myManager->SendObservations();
                 contador++;
             }
-            else contador = 0;
-
         }
-        
-        //std::this_thread::sleep_for(std::chrono::milliseconds(1));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
+        else if (nextStepSim == "RESET"){
+            simApp.StepSimulation();
+            contador = 0;
+        }
+       
+        //std::this_thread::sleep_for(std::chrono::milliseconds(5));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
                                                                     // Si el posem a 1, va una mica ràpid, però acceptable.
                                                                     // Si el deixem a 10, potser és un xic lent, però veus bé les trajectories que fa.
         float time1 = simManager->getSimulationTime();
@@ -67,6 +70,7 @@ int learning(void* data) {
         
         std::cout << "[INFO] Delta Time = " << delta_time << " segons" << std::endl;
         std::cout << "[INFO] Steps per second: " << steps_per_second << std::endl;
+
     }
 
     std::cout << "[INFO] Learning thread finished after " << contador << " steps." << std::endl;
@@ -88,8 +92,8 @@ int main(int argc, char **argv) {
 
     sf::HelperSettings h;
     sf::RenderSettings r;
-    r.windowW = 1200;
-    r.windowH = 900;
+    r.windowW = 900;
+    r.windowH = 700;
    
     
     StonefishRL* simManager = new StonefishRL(scene_path, frequency);

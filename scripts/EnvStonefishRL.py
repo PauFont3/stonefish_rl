@@ -56,8 +56,9 @@ class EnvStonefishRL(gym.Env):
         # Actualitza l'estat intern
         self.state = obs_dict
 
+        self.print_full_state()
         # Actualitza les llistes de robots, actuadors i sensors
-        self.robots, self.actuators, self.sensors = self.list_objects_by_type()
+        #self.robots, self.actuators, self.sensors = self.list_objects_by_type()
         
         return self.state
 
@@ -77,12 +78,12 @@ class EnvStonefishRL(gym.Env):
         """
         Envia una comanda al simulador StonefishRL
         """
-        print(f"[CONN] Enviant comanda: {message}")
+        #print(f"[CONN] Enviant comanda: {message}")
         self.socket.send_string(message)
 
         # Espera rebre una resposta del simulador
         response = self.socket.recv_string()
-        print(f"[CONN] Resposta rebuda de StonefishRL: {response}")
+        #print(f"[CONN] Resposta rebuda de StonefishRL: {response}")
         return response
 
 
@@ -94,17 +95,26 @@ class EnvStonefishRL(gym.Env):
 
 
     # Cal el "*, seed=None, options=None)" ?
-    def reset(self, seed=None, options=None):
+    def reset(self, *, seed=None, options=None):
+        super().reset(seed=seed)
         
-        x = random.uniform(-5.0, 0.0)
-        y = random.uniform(-5.0, 0.0)
-        z = random.uniform(-5.0, 0.0)
-        roll = random.uniform(-3.14, 3.14)
-        pitch = random.uniform(-3.14, 3.14)
-        yaw = random.uniform(-3.14, 3.14)
+        if options is None:
+            options = {}
+        
+        low = options.get("low", -0.2)
+        high = options.get("high", 0.2)
+
+        x = self.np_random.uniform(low, high)
+        y = self.np_random.uniform(low, high)
+        z = self.np_random.uniform(-4.2, -3.8)
+        roll = self.np_random.uniform(low, high)
+        pitch = self.np_random.uniform(low, high)
+        yaw = self.np_random.uniform(-3.14, -3.10)
+
+
 
         obs = self.send_command("RESET:Acrobot;")
-        print("[INFO] StonefishRL diu: ", obs)
+        #print("[INFO] StonefishRL diu: ", obs)
 
         # Carregar valors de la posició on anirà el robot al fer el RESET
         valors = [-x,y,z, roll, pitch, yaw] 
@@ -117,7 +127,7 @@ class EnvStonefishRL(gym.Env):
         
         self._process_and_update_state(msg)
         
-        self.print_full_state()
+        #self.print_full_state()
 
         return self.state
     
@@ -160,27 +170,19 @@ class EnvStonefishRL(gym.Env):
             
         return actuators, sensors, robots
 
-    # FALTARA DEFINAR UNA FUNCIÓ STEP EN AQUESTA CLASSE TAMBÉ
-    # Fara arribar la comanda que volen fer al step al simulador.
-    #def step(self):
+
+    def step(self, message, steps):
         """
         Envia les accions al simulador i rep les observacions
         - action: Array amb les accions que es vol fer a cada actuador
         """
-
-        commands = "CMD:Acrobot/Servo:POSITION:2.9;Acrobot/Servo2:TORQUE:5.0;"
-        obs_objects = "OBS:"
-        message = commands + obs_objects
-
-        for step in range(1000):
-            if(step > 20000):
-                commands = "CMD:Acrobot/Servo:POSITION:2.1;Acrobot/Servo2:VELOCITY:2.0;OBS:"
-            
-            print(f"[INFO] Step {step + 1}\n")
-
+        for i in range(steps):
+            #print (f"[INFO] Fent el pas {i+1}/{steps}")
             msg = self.send_command(message)
+
+        # Processar l'ultim estat rebut
+        self._process_and_update_state(msg)
         
-        self._process_and_update_state(msg)  
 
     
     def print_full_state(self):
