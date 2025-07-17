@@ -12,7 +12,7 @@ class AcrobotEnv(EnvStonefishRL):
     def __init__(self):
 
         super().__init__()
-
+        
         high = np.array(
         #   [cos(theta1), sin(theta1), cos(theta2), sin(theta2), omega1, omega2]
             [1.0, 1.0, 1.0, 1.0, self.MAX_VEL_1, self.MAX_VEL_2], dtype=np.float32
@@ -33,22 +33,26 @@ class AcrobotEnv(EnvStonefishRL):
 
         self.step_counter = 0
         self.MAX_STEPS = 500 # Limit de steps per activar 'truncated'
-        self.GOAL_POSITION = -3.0 # Altura a la que ha d'arribar la 2a articulació de l'acrobot
+        self.GOAL_POSITION = -5.5 # Altura a la que ha d'arribar la 2a articulació de l'acrobot
 
 
     def get_observation(self):
         
         theta1 = self.state['Acrobot/Encoder']['angle']
-        print("Valor theta1: ", self.state['Acrobot/Encoder']['angle'])
+        #print("Valor theta1: ", self.state['Acrobot/Encoder']['angle'])
         theta2 = self.state['Acrobot/Encoder2']['angle']
-        print("Valor theta2: ", self.state['Acrobot/Encoder2']['angle'])
+        #print("Valor theta2: ", self.state['Acrobot/Encoder2']['angle'])
         omega1 = self.state['Acrobot/Encoder']['angular_velocity']
-        print("Valor omega2: ", omega1)
+        #print("Valor omega2: ", omega1)
         omega2 = self.state['Acrobot/Encoder2']['angular_velocity']
-        print("Valor omega2: ", omega2)
+        #print("Valor omega2: ", omega2)
 
         z = self.state["Acrobot/Odometry"]["position"][2]
         print("Posició eix 'Z' del sensor Odometry: ", z)
+
+        # Normalitzar angles a [-pi, pi]
+        theta1 = np.fmod(theta1 + pi, 2 * pi) - pi
+        theta2 = np.fmod(theta2 + pi, 2 * pi) - pi
 
         return np.array([
                 cos(theta1),
@@ -92,17 +96,17 @@ class AcrobotEnv(EnvStonefishRL):
 
         reward = -1.0 
 # OPCIO 1 REWARD
-        theta1 = arctan2(obs[1], obs[0])
-        theta2 = arctan2(obs[3], obs[2])
+        #theta1 = arctan2(obs[1], obs[0])
+        #theta2 = arctan2(obs[3], obs[2])
 
         # Funció que dona el reward
-        height = -self.LINK_LENGTH_1 * cos(theta1) - self.LINK_LENGTH_2 * cos(theta1 + theta2)
+        #height = -self.LINK_LENGTH_1 * cos(theta1) - self.LINK_LENGTH_2 * cos(theta1 + theta2)
 #
 # OPCIO 2 REWARD
         z = self.state["Acrobot/Odometry"]["position"][2]
 #
         print("Valor del Step Counter: ", self.step_counter)
-        print("Valor step per acceptar el 'TERMINATED': ", height)
+        #print("Valor step per acceptar el 'TERMINATED': ", height)
         
         #terminated = self.GOAL_POSITION <= height
         terminated = z <= self.GOAL_POSITION

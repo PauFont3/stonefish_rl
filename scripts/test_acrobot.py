@@ -1,4 +1,3 @@
-import time
 from AcrobotEnv import AcrobotEnv
 
 env = AcrobotEnv()

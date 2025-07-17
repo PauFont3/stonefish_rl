@@ -56,7 +56,7 @@ class EnvStonefishRL(gym.Env):
         # Actualitza l'estat intern
         self.state = obs_dict
 
-        self.print_full_state()
+        #self.print_full_state()
         # Actualitza les llistes de robots, actuadors i sensors
         #self.robots, self.actuators, self.sensors = self.list_objects_by_type()
         
