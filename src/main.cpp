@@ -43,7 +43,7 @@ int learning(void* data) {
         std::cout << "-----------------------  STARTING STEP: " << contador << "  ------------------------------" << std::endl; 
         std::cout << "---------------------------------------------------------------------------- \n";
         
-        nextStepSim = myManager->RecieveInstructions();
+        nextStepSim = myManager->RecieveInstructions(simApp);
         
         float time0 = simManager->getSimulationTime();
 
@@ -56,6 +56,9 @@ int learning(void* data) {
             }
         }
         else if (nextStepSim == "RESET"){
+            //std::cout << "[INFO] Vaig a fer el RestartScenario()\n"; 
+            //myManager->RestartScenario();
+            //myManager->WaitUntilStop22(simApp);
             simApp.StepSimulation();
             contador = 0;
         }

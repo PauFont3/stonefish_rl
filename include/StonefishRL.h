@@ -9,6 +9,7 @@
 #include <unordered_set>
 
 #include <Stonefish/core/SimulationManager.h>
+#include <Stonefish/core/SimulationApp.h>
 #include <Stonefish/actuators/Actuator.h>
 #include <Stonefish/sensors/Sensor.h> 
 
@@ -37,7 +38,7 @@ public:
     StonefishRL(const std::string& path, double frequency);
 
     // Metodes per la interface de RL
-    std::string RecieveInstructions();
+    std::string RecieveInstructions(sf::SimulationApp& simApp);
     
     void SendObservations();
     
@@ -56,6 +57,8 @@ public:
     void MostrarValors();
 
     void FillWithNanPose(Pose& pose);
+
+    //void WaitUntilStop(sf::SimulationApp& simApp);
 
     // Converteix a JSON per enviar al Python
     std::string PoseToJson(const Pose& pose); 

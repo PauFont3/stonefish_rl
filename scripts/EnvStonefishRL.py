@@ -56,6 +56,7 @@ class EnvStonefishRL(gym.Env):
         # Actualitza l'estat intern
         self.state = obs_dict
 
+        #self.print_full_state()
         # Actualitza les llistes de robots, actuadors i sensors
         #self.robots, self.actuators, self.sensors = self.list_objects_by_type()
         
@@ -93,33 +94,12 @@ class EnvStonefishRL(gym.Env):
         print("[INFO] SIMULACIÓ ACABADA.")  
 
 
-    # Cal el "*, seed=None, options=None)" ?
-    def reset(self, seed=None, options=None):
-        super().reset()
-        x = random.uniform(-0.2, 0.2)
-        y = random.uniform(-0.2, 0.2)
-        z = random.uniform(-4.2, -3.8)
-        roll = random.uniform(-0.2, 0.2)
-        pitch = random.uniform(-0.2, 0.2)
-        yaw = random.uniform(-3.14, -3.10)
-        
-
-
-        obs = self.send_command("RESET:Acrobot;")
-        #print("[INFO] StonefishRL diu: ", obs)
-
-        # Carregar valors de la posició on anirà el robot al fer el RESET
-        valors = [-x,y,z, roll, pitch, yaw] 
-        tipus_format = "f" * len(valors) # Posa a float tots els valors que hi ha al vector 'valors'
-        novesPosicions = struct.pack(tipus_format, *valors)
-        
-        # Enviar posicions (floats)
-        self.socket.send(novesPosicions)
+    def reset(self, *, seed=None, options=None):
+        #super().reset(seed=seed)
         msg = self.socket.recv_string()
-        
         self._process_and_update_state(msg)
-        
-        #self.print_full_state()
+
+        super().reset(seed=seed)
 
         return self.state
     

@@ -8,21 +8,22 @@
     </environment>
 
     <materials>
-        <material name="Steel" density="7891.0" restitution="0.9"/>
+    <!-- Son els valors de "Aluminium" -->
+        <material name="Aluminium" density="2710.0" restitution="0.5"/>
         <friction_table>
-            <friction material1="Steel" material2="Steel" static="0.4" dynamic="0.1"/>
+            <friction material1="Aluminium" material2="Aluminium" static="0.1" dynamic="0.1"/>
         </friction_table>
     </materials>
 
     <looks>
-        <look name="Green" rgb="0.0 1.0 0.0" roughness="0.5"/>
-        <look name="Yellow" rgb="1.0 1.0 0.0" roughness="0.5"/>
-        <look name="Blue" rgb="0.0 0.0 1.0" roughness="0.5"/>
-        <look name="Gray" gray="0.5" roughness="0.5"/>
+        <look name="Green" rgb="0.0 1.0 0.0" roughness="0.5"/> <!-- metalness="0.5"/> -->
+        <look name="Yellow" rgb="1.0 1.0 0.0" roughness="0.5"/> <!-- metalness="0.5"/> -->
+        <look name="Blue" rgb="0.0 0.0 1.0" roughness="0.5"/> <!-- metalness="0.5"/> -->
+        <look name="Gray" gray="0.5" roughness="0.5"/> <!-- metalness="0.5"/> -->
     </looks>
 
     <static name="Floor" type="plane">
-        <material name="Steel"/>
+        <material name="Aluminium"/>
         <look name="Gray"/>
         <world_transform xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     </static>
@@ -32,14 +33,14 @@
         <base_link name="Ball" type="sphere" physics="surface">
             <dimensions radius="0.1"/>
             <origin xyz="0.0 0.0 -1.0" rpy="0.0 0.0 0.0"/>
-            <material name="Steel"/>
+            <material name="Aluminium"/>
             <look name="Green"/>
         </base_link>
 
         <link name="Cylinder1" type="cylinder" physics="surface">
             <dimensions radius="0.05" height="1.0"/>
             <origin xyz="0.0 0.0 -0.5" rpy="0.0 0.0 0.0"/> <!-- No tocar, ja està ben posicionat -->
-            <material name="Steel"/>
+            <material name="Aluminium"/>
             <look name="Green"/>
         </link>
 
@@ -47,14 +48,14 @@
             <dimensions radius="0.05" height="1.0"/>
             <!-- <origin xyz="0.0 0.0 1.0" rpy="0.0 0.0 0.0"/> -->
             <origin xyz="0.0 0.0 -0.5" rpy="0.0 0.0 0.0"/>
-            <material name="Steel"/>
+            <material name="Aluminium"/>
             <look name="Yellow"/>
         </link>
 <!--
         <link name="OdoMarker" type="sphere" physics="surface">
             <dimensions radius="0.01"/>
             <origin xyz="0.0 0.0 0.9" rpy="0.0 0.0 0.0"/>
-            <material name="Steel"/>
+            <material name="Aluminium"/>
             <look name="Blue"/>
         </link>
 -->
@@ -121,7 +122,7 @@
         <base_link name="CylBase" type="cylinder" physics="surface">
             <dimensions radius="0.09" height="0.4"/>
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-            <material name="Steel"/>
+            <material name="Aluminium"/>
             <look name="Blue"/>
         </base_link>
         <world_transform xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>

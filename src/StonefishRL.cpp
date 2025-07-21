@@ -36,6 +36,8 @@
 #include <Stonefish/core/ScenarioParser.h> // Per carregar l'arxiu XML
 #include <Stonefish/StonefishCommon.h>
 
+#include <SDL2/SDL.h>
+
 // Constructor de la classe StonefishRL
 StonefishRL::StonefishRL(const std::string &path, double frequency)
     : sf::SimulationManager(frequency),
@@ -50,7 +52,7 @@ StonefishRL::StonefishRL(const std::string &path, double frequency)
 }
 
 
-std::string StonefishRL::RecieveInstructions()
+std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
 {
     zmq::message_t request;
 
@@ -75,6 +77,8 @@ std::string StonefishRL::RecieveInstructions()
         // Rebre els valors de les posicions de reset que s'han enviat
         zmq::message_t reset_position;
 
+        //WaitUntilStop(simApp);
+
         // Sino faig una assignacio em dona un warning.
         auto merda = socket.recv(reset_position, zmq::recv_flags::none);
         
@@ -93,7 +97,6 @@ std::string StonefishRL::RecieveInstructions()
                 std::string message = "NOT ABLE TO FIND THE ROBOT BY THE GIVEN NAME: " + cmd.erase(cmd.find(";")); 
                 socket.send(zmq::buffer(message), zmq::send_flags::none);
             }
-            
 
             return "RESET";
         }
@@ -457,7 +460,8 @@ bool StonefishRL::SetRobotPosition(std::string robot_name, const float* position
             sf::Quaternion rotation(position_data[3], position_data[4], position_data[5]);
             tf.setRotation(rotation);
         }
-
+        
+        
         robot_ptr->Respawn(this, tf);
     }
     return robot_found;
@@ -570,7 +574,61 @@ void StonefishRL::FillWithNanPose(Pose& pose) {
 }
 
 // Pq el python ho pugui interpretar com un valor buit
-std::string StonefishRL::SafeFloat(float val) {
+std::string StonefishRL::SafeFloat(float val) 
+{
     if (std::isnan(val)) return "null";
     else return std::to_string(val);
 }
+/*
+void StonefishRL::WaitUntilStop(sf::SimulationApp& simApp) 
+{
+    sf::Actuator *actuator_ptr;
+
+    const float epsilon = 0.02f; 
+    int steps = 0;
+
+    int id = 0;
+    while ((actuator_ptr = getActuator(id++)) != nullptr)
+    {
+        std::string actuator_name = actuator_ptr->getName();
+        
+        if (actuator_ptr->getType() == sf::ActuatorType::SERVO)
+        {   
+            sf::Servo *servo_ptr = dynamic_cast<sf::Servo *>(actuator_ptr);
+            
+            float vel = servo_ptr->getVelocity();
+            int pos_correcte = 0;
+            const int max_steps = 100000; 
+            while(pos_correcte < 10 && steps < max_steps)
+            {   
+                vel = servo_ptr->getVelocity();
+                servo_ptr->setControlMode(sf::ServoControlMode::POSITION);
+                servo_ptr->setDesiredPosition(0.0);
+                simApp.StepSimulation();
+                steps++;
+                //std::cout << "num steps: " << steps << std::endl;
+                //std::cout << "Vel servo: " << fabs(vel) << std::endl;
+                if(fabs(servo_ptr->getPosition()) <= epsilon) pos_correcte++;
+                else pos_correcte = 0;
+                //std::cout << "I'm in mid trouble\n"; 
+            }
+            
+            //std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+
+        /*    
+            steps = 0;
+            float angle_pos = servo_ptr->getPosition();
+            while(std::fabs(angle_pos) > epsilon || steps < max_steps){
+                angle_pos = servo_ptr->getPosition();
+                servo_ptr->setControlMode(sf::ServoControlMode::POSITION);
+                servo_ptr->setDesiredPosition(0.0f);
+                simApp.StepSimulation();
+                steps++;
+            }
+        
+            std::cout << "\n\n\n[INFO] I don't have velocity" << std::endl;
+        }
+    }
+}
+*/
+
