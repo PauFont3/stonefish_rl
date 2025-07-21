@@ -19,7 +19,7 @@ Per compilar i executar el projecte:
 ### 1. Clonar i Preparar l’Entorn
 ```bash 
 # 1. Clonar el repositori 
-# git clone “https://github.com/PauFont3/stonefish_rl”
+# git clone “https://github.com/PauFont3/stonefish_rl.git”
 
 # 2. Navegar al directori del projecte 
 # cd stonefish_rl
