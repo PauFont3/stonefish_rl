@@ -18,11 +18,11 @@ Per compilar i executar el projecte:
 
 ### 1. Clonar i Preparar l’Entorn
 ```bash 
-# 1. Clonar el repositori 
-# git clone “https://github.com/PauFont3/stonefish_rl.git”
+# 1. Clonar el repositori
+git clone “https://github.com/PauFont3/stonefish_rl.git”
 
 # 2. Navegar al directori del projecte 
-# cd stonefish_rl
+cd stonefish_rl
 
 # 3. Crear i activar un entorn virtual per Python 
 python3 -m venv env 
@@ -78,7 +78,7 @@ python python/test_acrobot.py
 ```
 
 #### Notes Importants
-- Si després d’un reset, l’Acrobot gira incontroladament, por ser per velocitat residual del robot. La funció `ẀaitUntilStop()`` intenta garantir que estigui completament aturat abans de començar el seguent episodi.
+- Si després d’un reset, l’Acrobot segueix balancejant-se, pot ser per la velocitat residual del robot. La funció `ẀaitUntilStop()`` intenta garantir que estigui completament aturat abans de començar el seguent episodi.
 
 
 
