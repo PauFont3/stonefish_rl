@@ -78,7 +78,7 @@ python python/test_acrobot.py
 ```
 
 #### Notes Importants
-- Si després d’un reset, l’Acrobot segueix balancejant-se, pot ser per la velocitat residual del robot. La funció `ẀaitUntilStop()`` intenta garantir que estigui completament aturat abans de començar el seguent episodi.
+- Si després d’un reset, l’Acrobot segueix balancejant-se, pot ser per la velocitat residual del robot.
 
 
 
