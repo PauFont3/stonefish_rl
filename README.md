@@ -49,7 +49,7 @@ S’han d’obrir **2 terminals**.
 En aquesta terminal, executa el simulador. Ha d’estar obert mentre utilitzes els scripts de Python. 
 #### Desde l’arrel del projecte
 ```bash  
-./build/StonefishRLTest scenes/acrobot_scene.xml 
+./build/StonefishRLTest /home/ubuntu/stonefish_rl/Resources/acrobot/acrobot_scene.xml
 ``` 
 Si tot va bé, veuràs la finestra de la simulació i els logs de Stonefish. 
 
