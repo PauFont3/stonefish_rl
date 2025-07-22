@@ -14,7 +14,8 @@ model = PPO("MlpPolicy", env, verbose=1)#, tensorboard_log="./ppo_acrobot_tensor
 model.learn(total_timesteps=50000)
 
 # Guardar el model
-model.save("ppo_acrobot_stonefish_50000_5_4__7_0")
+#model.save("ppo_acrobot_stonefish_50000_5_4__7_0")
+model.save("ppo_acrobot_stonefish")
 
 # Executar l'entorn amb el model
 obs, _ = env.reset()
