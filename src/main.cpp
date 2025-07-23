@@ -7,12 +7,15 @@
 #include <Stonefish/core/GraphicalSimulationApp.h>
 #include <Stonefish/core/SimulationApp.h>
 #include <Stonefish/core/SimulationManager.h>
+
 #include <Stonefish/sensors/scalar/RotaryEncoder.h>
 #include <Stonefish/sensors/scalar/IMU.h>
 #include <Stonefish/sensors/ScalarSensor.h>
 #include <Stonefish/sensors/Sample.h>
 #include <Stonefish/actuators/Motor.h>
 #include <Stonefish/actuators/Servo.h>
+#include <Stonefish/actuators/Thruster.h>
+
 #include <Stonefish/StonefishCommon.h>
 
 
@@ -37,13 +40,26 @@ int learning(void* data) {
     int contador = 0;
     std::string nextStepSim;
 
+    /* ------- PROVA ------ 
+
+    while(contador < 100000){
+        
+        std::cout << "\n\n--- STEP: " << contador << " ---\n";
+
+        simApp.StepSimulation();
+        myManager->ProvaMostrarTot();
+
+        contador++;
+    }
+    // ------------------------------- */
+
     while(nextStepSim != "EXIT")
     {
         std::cout << "\n\n---------------------------------------------------------------------------- \n";
         std::cout << "-----------------------  STARTING STEP: " << contador << "  ------------------------------" << std::endl; 
         std::cout << "---------------------------------------------------------------------------- \n";
         
-        nextStepSim = myManager->RecieveInstructions();
+        nextStepSim = myManager->RecieveInstructions(simApp);
         
         float time0 = simManager->getSimulationTime();
 
@@ -60,9 +76,9 @@ int learning(void* data) {
             contador = 0;
         }
        
-        //std::this_thread::sleep_for(std::chrono::milliseconds(5));  // Si el treiem (comentem aquesta linea) va tremendament ràpid.
-                                                                    // Si el posem a 1, va una mica ràpid, però acceptable.
-                                                                    // Si el deixem a 10, potser és un xic lent, però veus bé les trajectories que fa.
+        //std::this_thread::sleep_for(std::chrono::milliseconds(5)); // Si el treiem (comentem aquesta linea) va tremendament ràpid.
+                                                                     // Si el posem a 1, va una mica ràpid, però acceptable.
+                                                                     // Si el deixem a 10, potser és un xic lent, però veus bé les trajectories que fa.
         float time1 = simManager->getSimulationTime();
         
         float delta_time = time1 - time0;
@@ -94,6 +110,13 @@ int main(int argc, char **argv) {
     sf::RenderSettings r;
     r.windowW = 900;
     r.windowH = 700;
+    r.shadows = sf::RenderQuality::LOW;
+    r.ao = sf::RenderQuality::LOW;
+    r.atmosphere = sf::RenderQuality::LOW;
+    r.ocean = sf::RenderQuality::LOW;
+    r.aa = sf::RenderQuality::LOW;
+    r.ssr = sf::RenderQuality::LOW;
+    
    
     
     StonefishRL* simManager = new StonefishRL(scene_path, frequency);

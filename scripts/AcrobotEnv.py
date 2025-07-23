@@ -1,7 +1,9 @@
 from EnvStonefishRL import EnvStonefishRL
 import numpy as np
+import struct
+import math
 from gymnasium import spaces
-from numpy import cos, pi, sin, arctan2
+from numpy import cos, pi, sin
 
 class AcrobotEnv(EnvStonefishRL):
 
@@ -9,9 +11,9 @@ class AcrobotEnv(EnvStonefishRL):
     MAX_VEL_2 = 9 * pi
 
 
-    def __init__(self):
+    def __init__(self, ip="tcp://localhost:5555"):
 
-        super().__init__()
+        super().__init__(ip)
         
         high = np.array(
         #   [cos(theta1), sin(theta1), cos(theta2), sin(theta2), omega1, omega2]
@@ -25,15 +27,10 @@ class AcrobotEnv(EnvStonefishRL):
         self.action_space = spaces.Discrete(3)
         self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
 
-        #self.state = None
- 
-        # Constants per saber les llargades dels links (articulacions acrobot)
-        self.LINK_LENGTH_1 = 1.0
-        self.LINK_LENGTH_2 = 1.0
-
         self.step_counter = 0
         self.MAX_STEPS = 500 # Limit de steps per activar 'truncated'
-        self.GOAL_POSITION = -5.5 # Altura a la que ha d'arribar la 2a articulació de l'acrobot
+        #self.GOAL_POSITION = -5.0 # Altura a la que ha d'arribar la 2a articulació de l'acrobot
+        self.GOAL_POSITION = -5.4 # Altura a la que ha d'arribar la 2a articulació de l'acrobot
 
 
     def get_observation(self):
@@ -48,11 +45,11 @@ class AcrobotEnv(EnvStonefishRL):
         #print("Valor omega2: ", omega2)
 
         z = self.state["Acrobot/Odometry"]["position"][2]
-        print("Posició eix 'Z' del sensor Odometry: ", z)
+        #print("Posició eix 'Z' del sensor Odometry: ", z)
 
         # Normalitzar angles a [-pi, pi]
-        theta1 = np.fmod(theta1 + pi, 2 * pi) - pi
-        theta2 = np.fmod(theta2 + pi, 2 * pi) - pi
+        #theta1 = np.fmod(theta1 + pi, 2 * pi) - pi
+        #theta2 = np.fmod(theta2 + pi, 2 * pi) - pi
 
         return np.array([
                 cos(theta1),
@@ -66,25 +63,26 @@ class AcrobotEnv(EnvStonefishRL):
        
     # Canviarla perque cridi a Step de EnvStonefishRL?
     # O que ella mateixa ho envii.
-    def step(self, action):
+    def step(self, action, manual_commands=None):
 
         self.step_counter += 1
-        torque = [-1000.0, 0.0, 1000.0]
+        #print(self.step_counter)
+        torque = [-7.0, 0.0, 7.0]
 
         tau = torque[action]
         
         # Construir el diccionari de comandes
-        command = {
-            "Acrobot/Servo2": {
-                "TORQUE": tau
-            }, 
-            "Acrobot/Servo": {
-                "TORQUE": 0.0
+        if (manual_commands is None): 
+            command = {
+                "Acrobot/Servo2": {
+                    "TORQUE": tau
+                }, 
+                "Acrobot/Servo": {
+                    "TORQUE": 0.0
+                }
             }
-        }
-
-        if self.sim_stonefishRL <= 0:
-            raise ValueError("El valor de sim_stonefishRL ha de ser >0")
+        else: # En cas que sigui un reset, perque frenarem també la Joint1
+            command = manual_commands
 
         # Convertir al format que accepta StonefishRL
         cmd_string = self.build_command(command) 
@@ -95,27 +93,16 @@ class AcrobotEnv(EnvStonefishRL):
         obs = self.get_observation()
 
         reward = -1.0 
-# OPCIO 1 REWARD
-        #theta1 = arctan2(obs[1], obs[0])
-        #theta2 = arctan2(obs[3], obs[2])
 
-        # Funció que dona el reward
-        #height = -self.LINK_LENGTH_1 * cos(theta1) - self.LINK_LENGTH_2 * cos(theta1 + theta2)
-#
-# OPCIO 2 REWARD
         z = self.state["Acrobot/Odometry"]["position"][2]
-#
-        print("Valor del Step Counter: ", self.step_counter)
-        #print("Valor step per acceptar el 'TERMINATED': ", height)
+
+        #print("Valor del Step Counter: ", self.step_counter)
         
-        #terminated = self.GOAL_POSITION <= height
         terminated = z <= self.GOAL_POSITION
 
         if terminated:
-            reward = 0.0 # Recompensa, pq representa que ha arribat al objectiu
-        
-        # S'activa quan portem >= 500 steps a Python.
-        # Utilitzo la version history (v1). D'aqui ve la limitació de les 500 steps
+            reward = 0.0 
+
         truncated = bool(self.step_counter >= self.MAX_STEPS)
      
         info = {}
@@ -123,8 +110,84 @@ class AcrobotEnv(EnvStonefishRL):
         return obs, reward, terminated, truncated, info
 
 
+    def reduce_velocity_to_reset(self, theta1, theta2):
+
+        #torque_value = 7.0 # Valor de força amb el que intentarem estabilitzar els braços de l'acrobot
+        torque_value = 7.0 # Valor de força amb el que intentarem estabilitzar els braços de l'acrobot
+        
+        llindar_error = 0.3
+        if theta1 < -llindar_error:
+            tau1 = torque_value
+        elif theta1 > llindar_error:
+            tau1 = -torque_value
+        else:
+            tau1 = 0.0
+
+        if theta2 < -llindar_error:
+            tau2 = torque_value
+        elif theta2 >= llindar_error:
+            tau2 = -torque_value
+        else:
+            tau2 = 0.0            
+
+        command = {
+            "Acrobot/Servo": {
+                "TORQUE": tau1
+            },
+            "Acrobot/Servo2": {
+                "TORQUE": tau2
+            }
+        }
+        
+        # Deixem "action=1" perque realment no ens afecta, ja estem passant el manual_commands i ja sap el que haura de fer
+        obs, reward, terminated, truncated, info = self.step(action=1, manual_commands=command)
+        return obs
+
+
     def reset(self, seed=None, options=None):
+        
+        if options is None:
+            options = {}
+
+        low = options.get("low", -0.2)
+        high = options.get("high", 0.2) 
+
+        x = self.np_random.uniform(low, high)
+        y = self.np_random.uniform(low, high)
+        z = self.np_random.uniform(-4.0, -4.0)
+        roll = self.np_random.uniform(low, high)
+        pitch = self.np_random.uniform(low, high)
+        yaw = self.np_random.uniform(-3.14, -3.14)
+
+        valors = [x, y, z, roll, pitch, yaw] 
+
+        tipus_format = "f" * len(valors) # Posa a float tots els valors que hi ha al vector 'valors'
+        novesPosicions = struct.pack(tipus_format, *valors)
+        
+        # Fer el reset de la posicio
+        obs = self.send_command("RESET:Acrobot;")
+        self.socket.send(novesPosicions)
+        
         super().reset(seed=seed, options=options)
+    
+        n_steps = 100
+        #obs, rewad, terminated, truncated, info = self.step(action, command)
+        obs = self.get_observation()
+        for _ in range(n_steps): 
+
+            cos_theta1 = obs[0]
+            sin_theta1 = obs[1]
+            cos_theta2 = obs[2]
+            sin_theta2 = obs[3]
+
+            theta1 = math.atan2(sin_theta1, cos_theta1)
+            theta2 = math.atan2(sin_theta2, cos_theta2)
+            #print("Valor del angle theta1: ", theta1)
+            #print("Valor del angle theta2: ", theta2)
+
+            self.reduce_velocity_to_reset(theta1, theta2)
+            obs = self.get_observation()
+            
         self.step_counter = 0
         obs = self.get_observation()
         info = {}

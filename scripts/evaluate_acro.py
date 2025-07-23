@@ -4,7 +4,7 @@ from AcrobotEnv import AcrobotEnv
 env = AcrobotEnv()
 
 # Carregar el model entrenat
-model = PPO.load("ppo_acrobot_stonefish_25000",env=env)
+model = PPO.load("ppo_acrobot_stonefish_50000_5_4__7_0",env=env)
 
 # Evaluar durant N episodis
 n_episodes = 5

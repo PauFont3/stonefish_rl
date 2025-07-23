@@ -1,18 +1,18 @@
 import zmq
 import json
-import struct
-import random
+#import struct
+#import random
 import gymnasium as gym
 from gymnasium import spaces
 
 
 class EnvStonefishRL(gym.Env):
 
-    def __init__(self):
+    def __init__(self, ip="tcp://localhost:5555"):
         super().__init__() # Crida al constructor de la classe gym (gymnasium)
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
-        self.socket.connect("tcp://localhost:5555")
+        self.socket.connect(ip)
 
         self.state = {} # Diccionari amb tota la informació 
 
@@ -56,10 +56,6 @@ class EnvStonefishRL(gym.Env):
         # Actualitza l'estat intern
         self.state = obs_dict
 
-        #self.print_full_state()
-        # Actualitza les llistes de robots, actuadors i sensors
-        #self.robots, self.actuators, self.sensors = self.list_objects_by_type()
-        
         return self.state
 
 
@@ -94,45 +90,17 @@ class EnvStonefishRL(gym.Env):
         print("[INFO] SIMULACIÓ ACABADA.")  
 
 
-    # Cal el "*, seed=None, options=None)" ?
     def reset(self, *, seed=None, options=None):
-        super().reset(seed=seed)
-        
-        if options is None:
-            options = {}
-        
-        low = options.get("low", -0.2)
-        high = options.get("high", 0.2)
-
-        x = self.np_random.uniform(low, high)
-        y = self.np_random.uniform(low, high)
-        z = self.np_random.uniform(-4.2, -3.8)
-        roll = self.np_random.uniform(low, high)
-        pitch = self.np_random.uniform(low, high)
-        yaw = self.np_random.uniform(-3.14, -3.10)
-
-
-
-        obs = self.send_command("RESET:Acrobot;")
-        #print("[INFO] StonefishRL diu: ", obs)
-
-        # Carregar valors de la posició on anirà el robot al fer el RESET
-        valors = [-x,y,z, roll, pitch, yaw] 
-        tipus_format = "f" * len(valors) # Posa a float tots els valors que hi ha al vector 'valors'
-        novesPosicions = struct.pack(tipus_format, *valors)
-        
-        # Enviar posicions (floats)
-        self.socket.send(novesPosicions)
+        #super().reset(seed=seed)
         msg = self.socket.recv_string()
-        
         self._process_and_update_state(msg)
-        
-        #self.print_full_state()
+
+        super().reset(seed=seed)
 
         return self.state
     
 
-    def list_objects_by_type(self):
+    #def list_objects_by_type(self):
         """
             Clasifica els objectes segons el tipus q siguin, es basa en el seu nom
             - Robots: nom sense '/'
@@ -174,7 +142,6 @@ class EnvStonefishRL(gym.Env):
     def step(self, message, steps):
         """
         Envia les accions al simulador i rep les observacions
-        - action: Array amb les accions que es vol fer a cada actuador
         """
         for i in range(steps):
             #print (f"[INFO] Fent el pas {i+1}/{steps}")
@@ -182,6 +149,7 @@ class EnvStonefishRL(gym.Env):
 
         # Processar l'ultim estat rebut
         self._process_and_update_state(msg)
+        self.print_full_state()
         
 
     
