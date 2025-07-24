@@ -59,10 +59,10 @@ En aquesta 2a terminal, assegurat de tenir l’entorn virtual de Python activat 
 #### A. Entrenar un Nou Agent
 Per entrenar un agent des de zero utilitzant Stable-Baselines3 (PPO): 
 ```bash 
-python python/acro_learning.py 
+python python/acro_training.py 
 ``` 
 
-El progrés de l’entrenament es mostrarà a la terminal. En finalitzar, es guardarà el model entrenat (p.ex: `ppo_acrobot_stonefish.zip`). 
+El progrés de l’entrenament es mostrarà a la terminal. En finalitzar, es guardarà el model entrenat (p.ex: `ppo_acrobot_stonefish.zip`).
 
 #### B. Avaluar un Agent Entrenat 
 Per veure com es comporta un agent ja entrenat (assegurat que l’arxiu del model existeix): 
