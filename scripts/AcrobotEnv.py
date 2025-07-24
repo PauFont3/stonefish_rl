@@ -11,9 +11,9 @@ class AcrobotEnv(EnvStonefishRL):
     MAX_VEL_2 = 9 * pi
 
 
-    def __init__(self):
+    def __init__(self, ip="tcp://localhost:5555"):
 
-        super().__init__()
+        super().__init__(ip)
         
         high = np.array(
         #   [cos(theta1), sin(theta1), cos(theta2), sin(theta2), omega1, omega2]
@@ -29,7 +29,6 @@ class AcrobotEnv(EnvStonefishRL):
 
         self.step_counter = 0
         self.MAX_STEPS = 500 # Limit de steps per activar 'truncated'
-        #self.GOAL_POSITION = -5.0 # Altura a la que ha d'arribar la 2a articulació de l'acrobot
         self.GOAL_POSITION = -5.4 # Altura a la que ha d'arribar la 2a articulació de l'acrobot
 
 
@@ -44,7 +43,7 @@ class AcrobotEnv(EnvStonefishRL):
         omega2 = self.state['Acrobot/Encoder2']['angular_velocity']
         #print("Valor omega2: ", omega2)
 
-        z = self.state["Acrobot/Odometry"]["position"][2]
+        #z = self.state["Acrobot/Odometry"]["position"][2]
         #print("Posició eix 'Z' del sensor Odometry: ", z)
 
         # Normalitzar angles a [-pi, pi]
@@ -83,8 +82,6 @@ class AcrobotEnv(EnvStonefishRL):
             }
         else: # En cas que sigui un reset, perque frenarem també la Joint1
             command = manual_commands
-
-        #print("Command: ", command)
 
         # Convertir al format que accepta StonefishRL
         cmd_string = self.build_command(command) 

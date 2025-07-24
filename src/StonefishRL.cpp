@@ -12,8 +12,6 @@
 
 #include <zmq.hpp> 
 
-//#include <nlohmann/json.hpp> // Pel JSON
-
 // Includes per SENSORS
 #include <Stonefish/sensors/Sensor.h>
 #include <Stonefish/sensors/Sample.h>
@@ -23,13 +21,20 @@
 #include <Stonefish/sensors/scalar/RotaryEncoder.h>
 #include <Stonefish/sensors/vision/Camera.h>
 #include <Stonefish/sensors/scalar/Pose.h>
+#include "sensors/scalar/LinkSensor.h"
+#include "sensors/scalar/JointSensor.h"
 
 // Includes per ACTUADORS
 #include <Stonefish/actuators/Servo.h>
 #include <Stonefish/actuators/Motor.h>
 #include <Stonefish/actuators/Actuator.h>
+#include <Stonefish/actuators/Thruster.h>
+#include <Stonefish/actuators/LinkActuator.h>
+#include <Stonefish/actuators/JointActuator.h>
 
 #include <Stonefish/core/Robot.h>
+
+#include <Stonefish/entities/SolidEntity.h>
 
 #include <Stonefish/core/SimulationManager.h>
 #include <Stonefish/core/SimulationApp.h>
@@ -57,7 +62,7 @@ std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
     zmq::message_t request;
 
     // Esperar a rebre el missatge
-    // Rep "RESET:Acrobot;"
+    // Rep "RESET:nom_robot;"
     auto result = socket.recv(request, zmq::recv_flags::none);
 
     // Convertir el missatge (que esta en un buffer) a string i mostrar-lo
@@ -76,8 +81,6 @@ std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
 
         // Rebre els valors de les posicions de reset que s'han enviat
         zmq::message_t reset_position;
-
-        //WaitUntilStop(simApp);
 
         // Sino faig una assignacio em dona un warning.
         auto merda = socket.recv(reset_position, zmq::recv_flags::none);
@@ -155,35 +158,32 @@ void StonefishRL::ApplyCommands(const std::string& str_cmds)
         // Només continuem la iteració si hi ha commands per l'actuador que estem mirant
         if (commands_.count(actuator_name) > 0)
         {
+            
             switch (actuator_ptr->getType())
             {
+
+            // SERVO
             case sf::ActuatorType::SERVO:
             {
                 sf::Servo *servo = dynamic_cast<sf::Servo *>(actuator_ptr);
                 if (!servo)
                 {
-                    std::cout << "[WARNING] Not converted " << actuator_name << " to sf::Servo.\n";
+                    std::cout << "[WARNING] Not converted " << actuator_name << " to SERVO.\n";
                     break;
                 }
 
-                // Ha trobat el SERVO, busca tots els parametres (VELOCITY, POSITION, ...) que té el Servo.
+                // Aplica totes les accions que hi ha a la comanda pel SERVO
                 for (const auto &[action, action_value] : commands_[actuator_name])
                 {
                     if (action == "VELOCITY" || action == "TORQUE")
                     {
-                        std::cout << "---------------------------------------------------------------------------- \n";
                         servo->setControlMode(sf::ServoControlMode::VELOCITY);
                         servo->setDesiredVelocity(action_value);
-                        std::cout << "[Servo] Set VELOCITY = " << action_value << " for " << actuator_name << "\n";
                     }
-                    else if (action == "POSITION") // El rang de valors va de pi a -pi
+                    else if (action == "POSITION") 
                     {
-                        std::cout << "---------------------------------------------------------------------------- \n";
-                        std::cout << "[Servo] Actual position of " << actuator_name << " = " << servo->getPosition() << "\n";
                         servo->setControlMode(sf::ServoControlMode::POSITION);
-                        std::cout << "[Servo] New incoming POSITION = " << action_value << " for " << actuator_name << "\n";
-                        servo->setDesiredPosition(action_value); // Aquest es el que realment ens marca a quina posicio volem deixar l'acrobot.
-                        std::cout << "[Servo] Reached POSITION = " << servo->getPosition() << " for " << actuator_name << "\n";
+                        servo->setDesiredPosition(action_value);
                     }
                     else
                     {
@@ -193,6 +193,30 @@ void StonefishRL::ApplyCommands(const std::string& str_cmds)
                 break;
             }
 
+            // THRUSTER
+            case sf::ActuatorType::THRUSTER:
+            {
+                sf::Thruster *thruster = dynamic_cast<sf::Thruster *>(actuator_ptr);
+                if (!thruster)
+                {
+                    std::cout << "[WARNING] Not converted " << actuator_name << " to THRUSTER.\n";
+                    break;
+                }
+
+                // Aplica totes les accions que hi ha a la comanda pel THRUSTER
+                for (const auto &[action, action_value] : commands_[actuator_name])
+                {
+                    if (action == "TORQUE")
+                    {
+                        thruster->setSetpoint(action_value);
+                    }
+                    else
+                    {
+                        std::cout << "[WARNING] Unknown command '" << action << "' for servo '" << actuator_name << "'\n";
+                    }
+                }
+                break;
+            }
             default:
                 std::cout << "[WARNING] Actuator type not supported: " << actuator_name << "\n";
                 break;
@@ -215,11 +239,6 @@ void StonefishRL::BuildScenario()
         }
         return;
     }
-
-    // POTSER NO CAL FER-HO.
-    sensors_.clear();
-    actuators_.clear();
-    
 
     sf::Sensor *sensor_ptr;
     unsigned int sensor_id = 0;
@@ -249,7 +268,6 @@ void StonefishRL::BuildScenario()
 
     if (robots_.empty()) std::cout << "[WARN] No robots registered in this scenario!" << std::endl;
 
-
     std::cout << "[INFO] Scenario loaded succesfully.\n";
 }
 
@@ -273,8 +291,8 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
         {
             sf::Vector3 origin = robot_ptr->getTransform().getOrigin();
 
-            Pose obs;
-            FillWithNanPose(obs);
+            InfoObject obs;
+            FillWithNanInfoObject(obs);
             obs.name = robot_name;
             obs.position[0] = origin.getX();
             obs.position[1] = origin.getY();
@@ -297,8 +315,8 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
                 if(scalar_sensor->getScalarSensorType() == sf::ScalarSensorType::ENCODER){
                     if (!scalar_sensor) continue;
                     
-                    Pose obs; // El poso aqui pq cada cop que es troba un objecte nou, no pugui tenir cap possible dada de l'anterior
-                    FillWithNanPose(obs);
+                    InfoObject obs; // El poso aqui pq cada cop que es troba un objecte nou, no pugui tenir cap possible dada de l'anterior
+                    FillWithNanInfoObject(obs);
                     obs.name = sensor_name;
                     for (unsigned int i = 0; i < scalar_sensor->getNumOfChannels(); i++)
                     {
@@ -316,22 +334,25 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
 
             else if(sensor_ptr->getType() == sf::SensorType::LINK)
             {
-                sf::ScalarSensor *odo_sensor = dynamic_cast<sf::ScalarSensor *>(sensor_ptr);
-                   
-                if(odo_sensor->getScalarSensorType() == sf::ScalarSensorType::ODOM){
-                    if(!odo_sensor) continue;
+                sf::ScalarSensor *sensor = dynamic_cast<sf::ScalarSensor *>(sensor_ptr);
+                
+                // ODOMETRY SENSOR
+                if(sensor->getScalarSensorType() == sf::ScalarSensorType::ODOM){
+                    if(!sensor) continue;
 
-                    float rot_x = odo_sensor->getLastSample().getValue(6);
-                    float rot_y = odo_sensor->getLastSample().getValue(7); 
-                    float rot_z = odo_sensor->getLastSample().getValue(8);
-                    float rot_w = odo_sensor->getLastSample().getValue(9);
-
-                    Pose obs;
-                    FillWithNanPose(obs);
+                    
+                    InfoObject obs;
+                    FillWithNanInfoObject(obs);
                     obs.name = sensor_name;
-                    obs.position[0] = odo_sensor->getLastSample().getValue(0);
-                    obs.position[1] = odo_sensor->getLastSample().getValue(1);
-                    obs.position[2] = odo_sensor->getLastSample().getValue(2);
+                    obs.position[0] = sensor->getLastSample().getValue(0);
+                    obs.position[1] = sensor->getLastSample().getValue(1);
+                    obs.position[2] = sensor->getLastSample().getValue(2);
+                    
+                    obs.rotation[0] = sensor->getLastSample().getValue(6);
+                    obs.rotation[1] = sensor->getLastSample().getValue(7); 
+                    obs.rotation[2] = sensor->getLastSample().getValue(8);
+                    float rot_w = sensor->getLastSample().getValue(9);
+
 
                     state.observations.push_back(obs);
                 }
@@ -350,8 +371,8 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
                 sf::Servo *servo_ptr = dynamic_cast<sf::Servo *>(actuator_ptr);
                 if (!servo_ptr) continue;
                 
-                Pose obs;
-                FillWithNanPose(obs);
+                InfoObject obs;
+                FillWithNanInfoObject(obs);
                 obs.name = actuator_ptr->getName();
 
                 obs.angle = servo_ptr->getPosition();
@@ -461,7 +482,6 @@ bool StonefishRL::SetRobotPosition(std::string robot_name, const float* position
             tf.setRotation(rotation);
         }
         
-        
         robot_ptr->Respawn(this, tf);
     }
     return robot_found;
@@ -475,6 +495,9 @@ void StonefishRL::ExitRequest() {
     std::exit(0);
 }
 
+// Agafa el nom dels commands dels actuadors que s'han enviat desdel Python, 
+// perque després al fer el recorregut dels actuadors al while(el que itera per tots els actuadors)
+// apliqui 'acció nomes als que s'han demanat al command
 bool StonefishRL::ObjImportantForObs(const std::string& objName) const {
     return relevant_obs_names_.empty() || relevant_obs_names_.count(objName) > 0;
 }
@@ -489,10 +512,11 @@ void StonefishRL::MostrarValors() {
         
         if(current_state_.observations[i].position.size() >= 3) 
         {
-            std::cout << "[INFO] Position: X[" << current_state_.observations[i].position[0] <<"],"
-                      << " Y[" << current_state_.observations[i].position[1] <<"],"
-                      << " Z[" << current_state_.observations[i].position[2] <<"]" << std::endl;
-        }        
+            std::cout << "[INFO] Position: X[" << current_state_.observations[i].position[0] << "],"
+                      << " Y[" << current_state_.observations[i].position[1] << "],"
+                      << " Z[" << current_state_.observations[i].position[2] << "]" << std::endl;
+        }       
+        // Falta mostrar les rotacions 
         std::cout << "[INFO] Angle: " << current_state_.observations[i].angle << "." << std::endl;
         std::cout << "[INFO] Angular velocity: " << current_state_.observations[i].angular_velocity << "." << std::endl;
         std::cout << "[INFO] Linear Velocity: " << current_state_.observations[i].linear_velocity << "." << std::endl;
@@ -527,16 +551,21 @@ void StonefishRL::MostrarValors() {
 }
 
 
-std::string StonefishRL::PoseToJson(const Pose& pose)
+std::string StonefishRL::InfoObjectToJson(const InfoObject& obj)
 {
     std::ostringstream oss;
     oss << "{"
-        << "\"position\": [" <<  SafeFloat(pose.position[0]) << ", "
-        << SafeFloat(pose.position[1]) << ", "
-        << SafeFloat(pose.position[2]) << "], "
-        << "\"angle\": " << SafeFloat(pose.angle) << ", "
-        << "\"angular_velocity\": " << SafeFloat(pose.angular_velocity) << ", "
-        << "\"linear_velocity\": " << SafeFloat(pose.linear_velocity)
+        << "\"position\": [" 
+        << SafeFloat(obj.position[0]) << ", "
+        << SafeFloat(obj.position[1]) << ", "
+        << SafeFloat(obj.position[2]) << "], "
+        << "\"rotation\": [" 
+        << SafeFloat(obj.rotation[0]) << ", "
+        << SafeFloat(obj.rotation[1]) << ", "
+        << SafeFloat(obj.rotation[2]) << "], "
+        << "\"angle\": " << SafeFloat(obj.angle) << ", "
+        << "\"angular_velocity\": " << SafeFloat(obj.angular_velocity) << ", "
+        << "\"linear_velocity\": " << SafeFloat(obj.linear_velocity)
         << "}";
     return oss.str();
 }
@@ -555,22 +584,22 @@ std::string StonefishRL::EscapeJson(const std::string& s) {
     return oss.str();
 }
 
-std::string StonefishRL::SerializeScene(const std::vector<Pose>& poses) {
+std::string StonefishRL::SerializeScene(const std::vector<InfoObject>& objs) {
     std::ostringstream oss;
     oss << "{";
-    for (size_t i = 0; i < poses.size(); i++) {
-        oss << EscapeJson(poses[i].name) << ":" << PoseToJson(poses[i]);
-        if (i < poses.size() - 1) oss << ",";
+    for (size_t i = 0; i < objs.size(); i++) {
+        oss << EscapeJson(objs[i].name) << ":" << InfoObjectToJson(objs[i]);
+        if (i < objs.size() - 1) oss << ",";
     }
     oss << "}";
     return oss.str();
 }
 
-void StonefishRL::FillWithNanPose(Pose& pose) {
-    pose.position.resize(3, NAN);
-    pose.angle = NAN;
-    pose.linear_velocity = NAN;
-    pose.angular_velocity = NAN;
+void StonefishRL::FillWithNanInfoObject(InfoObject& obj) {
+    obj.position.resize(3, NAN);
+    obj.rotation.resize(3, NAN);
+    obj.angle = NAN;
+    obj.linear_velocity = obj.angular_velocity = NAN;
 }
 
 // Pq el python ho pugui interpretar com un valor buit
@@ -579,56 +608,66 @@ std::string StonefishRL::SafeFloat(float val)
     if (std::isnan(val)) return "null";
     else return std::to_string(val);
 }
-/*
-void StonefishRL::WaitUntilStop(sf::SimulationApp& simApp) 
+
+// No serveix per res, només mostra valors per pantalla
+void StonefishRL::ProvaMostrarTot()
 {
+    sf::Sensor *sensor_ptr;
+    sf::Robot *robot_ptr;
     sf::Actuator *actuator_ptr;
 
-    const float epsilon = 0.02f; 
-    int steps = 0;
+    unsigned int id = 0;
+    std::cout << "\n ROBOT INFO: \n";
+    while ((robot_ptr = getRobot(id++)) != nullptr)
+    {
+        std::cout << robot_ptr->getName() << std::endl;
+        sf::Vector3 origin = robot_ptr->getTransform().getOrigin();
+        std::cout << "[ROBOT INFORMATION CHANNEL] POSICIO X: " << origin.getX() << std::endl;
+        std::cout << "[ROBOT INFORMATION CHANNEL] POSICIO Y: " << origin.getY() << std::endl;
+        std::cout << "[ROBOT INFORMATION CHANNEL] POSICIO Z: " << origin.getZ() << std::endl;
+    }
 
-    int id = 0;
+    id = 0;
+    std::cout << "\n ACTUATOR INFO: \n";
     while ((actuator_ptr = getActuator(id++)) != nullptr)
     {
-        std::string actuator_name = actuator_ptr->getName();
-        
+        std::cout << actuator_ptr->getName() << std::endl;
         if (actuator_ptr->getType() == sf::ActuatorType::SERVO)
         {   
+            std::cout << "SERVO\n";
             sf::Servo *servo_ptr = dynamic_cast<sf::Servo *>(actuator_ptr);
-            
-            float vel = servo_ptr->getVelocity();
-            int pos_correcte = 0;
-            const int max_steps = 100000; 
-            while(pos_correcte < 10 && steps < max_steps)
-            {   
-                vel = servo_ptr->getVelocity();
-                servo_ptr->setControlMode(sf::ServoControlMode::POSITION);
-                servo_ptr->setDesiredPosition(0.0);
-                simApp.StepSimulation();
-                steps++;
-                //std::cout << "num steps: " << steps << std::endl;
-                //std::cout << "Vel servo: " << fabs(vel) << std::endl;
-                if(fabs(servo_ptr->getPosition()) <= epsilon) pos_correcte++;
-                else pos_correcte = 0;
-                //std::cout << "I'm in mid trouble\n"; 
-            }
-            
-            //std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+            std::cout << "[ACTUATOR INFORMATION CHANNEL] Angle: " << servo_ptr->getPosition() << std::endl;
+            std::cout << "[ACTUATOR INFORMATION CHANNEL] Angular velocity: " << servo_ptr->getVelocity() << std::endl;;
+        }
+        else if (actuator_ptr->getType() == sf::ActuatorType::THRUSTER)
+        {   
+            std::cout << "THRUSTER\n";
+            sf::Thruster *thruster_ptr = dynamic_cast<sf::Thruster *>(actuator_ptr);
+            std::cout << "[ACTUATOR INFORMATION CHANNEL] Is propeller right-handed? " << thruster_ptr->isPropellerRight() << std::endl;
+            std::cout << "[ACTUATOR INFORMATION CHANNEL] Propeller diameter: " << thruster_ptr->getPropellerDiameter() << std::endl;
+            std::cout << "[ACTUATOR INFORMATION CHANNEL] Angular Velocity: " << thruster_ptr->getOmega() << " [rad/s]" << std::endl;
+            std::cout << "[ACTUATOR INFORMATION CHANNEL] Angle: " << thruster_ptr->getAngle() << " [rad]" << std::endl;
+            std::cout << "[ACTUATOR INFORMATION CHANNEL] Torque: " << thruster_ptr->getTorque() << std::endl;
+            std::cout << "[ACTUATOR INFORMATION CHANNEL] Thrust: " << thruster_ptr->getThrust() << std::endl;
+            std::cout << "[ACTUATOR INFORMATION CHANNEL] Set Point: " << thruster_ptr->getSetpoint() << std::endl;
+            std::cout << "[ACTUATOR INFORMATION CHANNEL] Set Point Limit: " << thruster_ptr->getSetpointLimit() << std::endl;
+        }
+    }
 
-        /*    
-            steps = 0;
-            float angle_pos = servo_ptr->getPosition();
-            while(std::fabs(angle_pos) > epsilon || steps < max_steps){
-                angle_pos = servo_ptr->getPosition();
-                servo_ptr->setControlMode(sf::ServoControlMode::POSITION);
-                servo_ptr->setDesiredPosition(0.0f);
-                simApp.StepSimulation();
-                steps++;
+    id = 0;
+    std::cout << "\n SENSOR INFO: \n";
+    while ((sensor_ptr = getSensor(id++)) != nullptr)
+    {
+        if (sensor_ptr->getType() == (sf::SensorType::JOINT) || sensor_ptr->getType() == sf::SensorType::LINK) {
+            std::cout << sensor_ptr->getName() << std::endl;
+            sf::ScalarSensor *scalar_sensor = dynamic_cast<sf::ScalarSensor *>(sensor_ptr);
+            for (unsigned int i = 0; i < scalar_sensor->getNumOfChannels(); i++)
+            {
+                std::string channel_name = scalar_sensor->getSensorChannelDescription(i).name;
+                float value = scalar_sensor->getLastSample().getValue(i);
+                std::cout << "[SENSOR INFORMATION CHANNEL] " << channel_name << ": " << value << std::endl;    
             }
-        
-            std::cout << "\n\n\n[INFO] I don't have velocity" << std::endl;
         }
     }
 }
-*/
 

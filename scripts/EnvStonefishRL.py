@@ -1,18 +1,18 @@
 import zmq
 import json
-import struct
-import random
+#import struct
+#import random
 import gymnasium as gym
 from gymnasium import spaces
 
 
 class EnvStonefishRL(gym.Env):
 
-    def __init__(self):
+    def __init__(self, ip="tcp://localhost:5555"):
         super().__init__() # Crida al constructor de la classe gym (gymnasium)
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
-        self.socket.connect("tcp://localhost:5555")
+        self.socket.connect(ip)
 
         self.state = {} # Diccionari amb tota la informació 
 
@@ -56,10 +56,6 @@ class EnvStonefishRL(gym.Env):
         # Actualitza l'estat intern
         self.state = obs_dict
 
-        #self.print_full_state()
-        # Actualitza les llistes de robots, actuadors i sensors
-        #self.robots, self.actuators, self.sensors = self.list_objects_by_type()
-        
         return self.state
 
 
@@ -104,7 +100,7 @@ class EnvStonefishRL(gym.Env):
         return self.state
     
 
-    def list_objects_by_type(self):
+    #def list_objects_by_type(self):
         """
             Clasifica els objectes segons el tipus q siguin, es basa en el seu nom
             - Robots: nom sense '/'
@@ -146,7 +142,6 @@ class EnvStonefishRL(gym.Env):
     def step(self, message, steps):
         """
         Envia les accions al simulador i rep les observacions
-        - action: Array amb les accions que es vol fer a cada actuador
         """
         for i in range(steps):
             #print (f"[INFO] Fent el pas {i+1}/{steps}")
@@ -154,6 +149,7 @@ class EnvStonefishRL(gym.Env):
 
         # Processar l'ultim estat rebut
         self._process_and_update_state(msg)
+        self.print_full_state()
         
 
     

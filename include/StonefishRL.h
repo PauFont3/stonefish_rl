@@ -10,7 +10,10 @@
 
 #include <Stonefish/core/SimulationManager.h>
 #include <Stonefish/core/SimulationApp.h>
+
 #include <Stonefish/actuators/Actuator.h>
+#include <Stonefish/actuators/Thruster.h>
+
 #include <Stonefish/sensors/Sensor.h> 
 
 #include <zmq.hpp> // Per la comunicació amb Python
@@ -18,20 +21,28 @@
 class StonefishRL : public sf::SimulationManager {
 public:
 
-    struct Pose //Posició orientació
+// IMPORTANT: Sempre que s'afegueixi un nou struct i/o paràmetre per enviar cap 
+// al Python, perque per exemle hi ha un sensor nou i volem enviar els nous valors
+// que recull que aquest sensor, els parametres o structs que s'afegeixin, també s'hauran
+// d'afegir a les funcions: 'InfoObjectToJson', 'FillWithNanInfoObject' i 'GetStateScene'
+// pq son les que envien les dades cap al python.
+
+    
+    // Conté tota l'informació d'un objecte de l'escena
+    struct InfoObject 
     {
         std::string name;
         std::vector<float> position;
-        //std::vector<float> rotation;
-
+        std::vector<float> rotation;
         float angle;
         float linear_velocity;
         float angular_velocity;
     };
 
+    // Conté tots els obejctes de l'escena
     struct StateScene
     {
-        std::vector<Pose> observations;
+        std::vector<InfoObject> observations;
     };
 
     // Constructor
@@ -56,14 +67,14 @@ public:
 
     void MostrarValors();
 
-    void FillWithNanPose(Pose& pose);
+    void FillWithNanInfoObject(InfoObject& pose);
 
-    //void WaitUntilStop(sf::SimulationApp& simApp);
+    void ProvaMostrarTot();
 
     // Converteix a JSON per enviar al Python
-    std::string PoseToJson(const Pose& pose); 
+    std::string InfoObjectToJson(const InfoObject& pose); 
     std::string EscapeJson(const std::string& s);
-    std::string SerializeScene(const std::vector<Pose>& poses);
+    std::string SerializeScene(const std::vector<InfoObject>& poses);
     std::string SafeFloat(float val);
 
 protected:
@@ -89,3 +100,20 @@ private:
     zmq::context_t context; // Context per ZeroMQ
     zmq::socket_t socket; // Socket per ZeroMQ
 };
+
+
+/* 
+ACCIONS QUE ES PODEN APLICAR:
+    
+    - SERVO:
+        - VELOCITY i TORQUE (els dos aplicaran velocitat)
+        - POSITION 
+    
+    - THRUSTER:
+        - TORQUE (Dona una velocitat de rotació a les helices del thrusters)
+*/
+
+/*
+El sensor de Odometria per saber la posició del braç (pinça del girona500)
+i si 'esta acostant gaire al obejcte, està acoplat al link "ECAEndEffector"
+*/
