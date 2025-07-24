@@ -1,4 +1,4 @@
-# Entorn de Reinforcement Learning amb Acrobot i Stonefish
+# Entorn de Reinforcement Learning amb Stonefish
 
 Aquest projecte implementa un entorn d’aprenentatge per reforç (Reinforcement Learning) per entrenar un robot `Acrobot` utilitzant la biblioteca **Gymnasium**. 
 La simulació física es fa amb **Stonefish** (C++) i la comunicació  entre Python i el simulador es fa a través de **ZeroMQ**. 
