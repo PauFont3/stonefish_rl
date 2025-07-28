@@ -17,13 +17,13 @@ class EnvStonefishRL(gym.Env):
         self.state = {} # Diccionari amb tota la informació 
 
         # Tindra els noms dels objectes de l'escena calsssificats segons el tipus q siguin
-        self.robots = []
-        self.actuators = []
-        self.sensors = []
+        #self.robots = []
+        #self.actuators = []
+        #self.sensors = []
 
         # S'emplenaran segons les accions o observacions que vulgem fer
-        self.action_space = spaces.Dict({})       # A la classe filla ja es definiran i agafaran un tipus concret
-        self.observation_space = spaces.Dict({})  # Encara no sabem quants actuadors o sensors tindran. 
+        #self.action_space = spaces.Dict({})       # A la classe filla ja es definiran i agafaran un tipus concret
+        #self.observation_space = spaces.Dict({})  # Encara no sabem quants actuadors o sensors tindran. 
 
 
     # El que es mostra a la terminal de Python ja es amb el canvi a 'NaN' fet
@@ -149,7 +149,7 @@ class EnvStonefishRL(gym.Env):
 
         # Processar l'ultim estat rebut
         self._process_and_update_state(msg)
-        self.print_full_state()
+        #self.print_full_state()
         
 
     

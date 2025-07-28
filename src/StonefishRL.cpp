@@ -61,8 +61,7 @@ std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
 {
     zmq::message_t request;
 
-    // Esperar a rebre el missatge
-    // Rep "RESET:nom_robot;"
+    // Esperar a rebre el missatge --> Rebrà: "RESET:nom_robot;"
     auto result = socket.recv(request, zmq::recv_flags::none);
 
     // Convertir el missatge (que esta en un buffer) a string i mostrar-lo
@@ -83,24 +82,17 @@ std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
         zmq::message_t reset_position;
 
         // Sino faig una assignacio em dona un warning.
-        auto merda = socket.recv(reset_position, zmq::recv_flags::none);
+        auto nothing_important = socket.recv(reset_position, zmq::recv_flags::none);
         
         int n_floats = reset_position.size() / sizeof(float);
         
         if(n_floats >= 3){
 
             const float* data = static_cast<const float*>(reset_position.data());
-
-            if(SetRobotPosition(cmd, data, n_floats))
-            {
-                SendObservations();
-            }
-            else 
-            {
-                std::string message = "NOT ABLE TO FIND THE ROBOT BY THE GIVEN NAME: " + cmd.erase(cmd.find(";")); 
-                socket.send(zmq::buffer(message), zmq::send_flags::none);
-            }
-
+        
+            SetRobotPosition(cmd, data, n_floats);        
+            SendObservations();
+            
             return "RESET";
         }
         else {
@@ -290,6 +282,8 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
         if(ObjImportantForObs(robot_name))
         {
             sf::Vector3 origin = robot_ptr->getTransform().getOrigin();
+            sf::Scalar yawZ, pitchY, rollX;
+            robot_ptr->getTransform().getRotation().getEulerZYX(yawZ, pitchY, rollX);
 
             InfoObject obs;
             FillWithNanInfoObject(obs);
@@ -297,7 +291,10 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
             obs.position[0] = origin.getX();
             obs.position[1] = origin.getY();
             obs.position[2] = origin.getZ();
-  
+            obs.rotation[0] = rollX;
+            obs.rotation[1] = pitchY;
+            obs.rotation[2] = yawZ;
+
             state.observations.push_back(obs);
         } 
     }
@@ -339,7 +336,6 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
                 // ODOMETRY SENSOR
                 if(sensor->getScalarSensorType() == sf::ScalarSensorType::ODOM){
                     if(!sensor) continue;
-
                     
                     InfoObject obs;
                     FillWithNanInfoObject(obs);
@@ -352,7 +348,6 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
                     obs.rotation[1] = sensor->getLastSample().getValue(7); 
                     obs.rotation[2] = sensor->getLastSample().getValue(8);
                     float rot_w = sensor->getLastSample().getValue(9);
-
 
                     state.observations.push_back(obs);
                 }
@@ -461,7 +456,7 @@ void StonefishRL::ParseCommandsAndObservations(const std::string& str)
     }
 }
 
-bool StonefishRL::SetRobotPosition(std::string robot_name, const float* position_data, int n_param)
+void StonefishRL::SetRobotPosition(std::string robot_name, const float* position_data, int n_param)
 {
     sf::Robot *robot_ptr;
     bool robot_found = false;
@@ -469,22 +464,30 @@ bool StonefishRL::SetRobotPosition(std::string robot_name, const float* position
 
     robot_name.erase(robot_name.find(";")); // Borra el ';'
 
-    while ((robot_ptr = getRobot(id++)) != nullptr && robot_ptr->getName() == robot_name)
+    while ((robot_ptr = getRobot(id++)) != nullptr && !robot_found)
     {
-        robot_found = true;
-        sf::Transform tf;
-        sf::Vector3 new_position(position_data[0], position_data[1], position_data[2]);
-        tf.setOrigin(new_position); // Mou el robot a la posició indicada
+        // Aquest if només esta fent el reset de la posició al robot que es passa pel command del RESET
+        if(robot_ptr->getName() == robot_name)
+        {     
+            robot_found = true;
         
-        // Per si també ens passen la rotació que li volen donar
-        if(n_param >= 6){
-            sf::Quaternion rotation(position_data[3], position_data[4], position_data[5]);
-            tf.setRotation(rotation);
+            sf::Transform tf;
+            sf::Vector3 new_position(position_data[0], position_data[1], position_data[2]);
+            tf.setOrigin(new_position); // Mou el robot a la posició indicada
+            
+            // Per si també ens passen la rotació que li volen donar
+            if(n_param >= 6){
+                sf::Quaternion rotation(position_data[3], position_data[4], position_data[5]);
+                tf.setRotation(rotation);
+            }
+            
+            robot_ptr->Respawn(this, tf);
         }
-        
-        robot_ptr->Respawn(this, tf);
     }
-    return robot_found;
+
+    if(!robot_found) std::cout << "NOT ABLE TO FIND THE ROBOT BY THE GIVEN NAME: " + robot_name << std::endl; 
+
+    //return robot_found;
 }
 
 void StonefishRL::ExitRequest() {

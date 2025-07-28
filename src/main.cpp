@@ -40,19 +40,6 @@ int learning(void* data) {
     int contador = 0;
     std::string nextStepSim;
 
-    /* ------- PROVA ------ 
-
-    while(contador < 100000){
-        
-        std::cout << "\n\n--- STEP: " << contador << " ---\n";
-
-        simApp.StepSimulation();
-        myManager->ProvaMostrarTot();
-
-        contador++;
-    }
-    // ------------------------------- */
-
     while(nextStepSim != "EXIT")
     {
         std::cout << "\n\n---------------------------------------------------------------------------- \n";
@@ -73,6 +60,7 @@ int learning(void* data) {
         }
         else if (nextStepSim == "RESET"){
             simApp.StepSimulation();
+            
             contador = 0;
         }
        

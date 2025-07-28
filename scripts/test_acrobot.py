@@ -4,7 +4,7 @@ env = AcrobotEnv()
 
 # Reset de l'entorn
 # Si no li passem cap valor com a 'options' agafarà el valor epr defecte '0.2' 
-obs, info = env.reset(seed=123, options={"low": -0.2, "high": 0.2})
+obs, info = env.reset(seed=123)#, options={"low": -0.2, "high": 0.2})
 terminated = False
 truncated = False
 

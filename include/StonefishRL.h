@@ -59,7 +59,7 @@ public:
 
     void ParseCommandsAndObservations(const std::string& str);
 
-    bool SetRobotPosition(std::string cmd, const float* position_data, int n_param);
+    void SetRobotPosition(std::string cmd, const float* position_data, int n_param);
     
     void ExitRequest();
 
