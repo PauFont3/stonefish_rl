@@ -76,30 +76,14 @@ std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
     if (prefix == "RESET")
     {
         std::cout << "[ZMQ] He rebut RESET\n";
-        socket.send(zmq::buffer("Preparat per rebre la posicio de RESET"), zmq::send_flags::none);
-
-        // Rebre els valors de les posicions de reset que s'han enviat
-        zmq::message_t reset_position;
-
-        // Sino faig una assignacio em dona un warning.
-        auto nothing_important = socket.recv(reset_position, zmq::recv_flags::none);
         
-        int n_floats = reset_position.size() / sizeof(float);
-        
-        if(n_floats >= 3){
+        std::vector<InfoObject> command_data;
+        command_data = ParseResetCommand(cmd);
 
-            const float* data = static_cast<const float*>(reset_position.data());
-        
-            SetRobotPosition(cmd, data, n_floats);        
-            SendObservations();
+        SetRobotPosition(command_data);        
+        SendObservations();
             
-            return "RESET";
-        }
-        else {
-            std::cerr << "[C++] Not enough floats (at least 3), provided: " << n_floats << "\n";
-            socket.send(zmq::buffer("RESET ERROR"), zmq::send_flags::none);
-            return "";
-        }
+        return "RESET";
     }
     else if (prefix == "EXIT")
     {
@@ -150,10 +134,8 @@ void StonefishRL::ApplyCommands(const std::string& str_cmds)
         // Només continuem la iteració si hi ha commands per l'actuador que estem mirant
         if (commands_.count(actuator_name) > 0)
         {
-            
             switch (actuator_ptr->getType())
             {
-
             // SERVO
             case sf::ActuatorType::SERVO:
             {
@@ -198,7 +180,7 @@ void StonefishRL::ApplyCommands(const std::string& str_cmds)
                 // Aplica totes les accions que hi ha a la comanda pel THRUSTER
                 for (const auto &[action, action_value] : commands_[actuator_name])
                 {
-                    if (action == "TORQUE")
+                    if (action == "VELOCITY" || action == "TORQUE")
                     {
                         thruster->setSetpoint(action_value);
                     }
@@ -336,19 +318,31 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
                 // ODOMETRY SENSOR
                 if(sensor->getScalarSensorType() == sf::ScalarSensorType::ODOM){
                     if(!sensor) continue;
-                    
+
                     InfoObject obs;
                     FillWithNanInfoObject(obs);
                     obs.name = sensor_name;
                     obs.position[0] = sensor->getLastSample().getValue(0);
                     obs.position[1] = sensor->getLastSample().getValue(1);
                     obs.position[2] = sensor->getLastSample().getValue(2);
+
+                    float linear_vel_x = sensor->getLastSample().getValue(3);
+                    float linear_vel_y = sensor->getLastSample().getValue(4);
+                    float linear_vel_z = sensor->getLastSample().getValue(5);
+                    // Podriem afegir un llindar per decidir si s'esta movent suficient
+                    obs.linear_velocity = std::sqrt(linear_vel_x*linear_vel_x + linear_vel_y*linear_vel_y + linear_vel_z*linear_vel_z);
                     
                     obs.rotation[0] = sensor->getLastSample().getValue(6);
                     obs.rotation[1] = sensor->getLastSample().getValue(7); 
                     obs.rotation[2] = sensor->getLastSample().getValue(8);
                     float rot_w = sensor->getLastSample().getValue(9);
 
+                    float angular_vel_x = sensor->getLastSample().getValue(10);
+                    float angular_vel_y = sensor->getLastSample().getValue(11);
+                    float angular_vel_z = sensor->getLastSample().getValue(12);
+                    // Podriem afegir un llindar per decidir si s'esta movent suficient
+                    obs.angular_velocity = std::sqrt(angular_vel_x*angular_vel_x + angular_vel_y*angular_vel_y + angular_vel_z*angular_vel_z);
+                    
                     state.observations.push_back(obs);
                 }
             }
@@ -392,6 +386,80 @@ void StonefishRL::InitializeZMQ()
     {
         std::cerr << "[ZMQ ERROR] " << e.what() << "\n";
     }
+}
+
+
+std::vector<StonefishRL::InfoObject> StonefishRL::ParseResetCommand(const std::string& str_command){
+    
+    std::vector<InfoObject> result;
+
+    int pos = 0;
+
+    // Mentres hi hagi '{..}'
+    while((pos = str_command.find("{", pos)) != std::string::npos) {
+        
+        // Busca la marca de fi '}'
+        int end = str_command.find("}", pos); 
+
+        if(end == std::string::npos) break;
+        
+        // Agafa i guarda en un string el contingut que hi ha dins de '{..}'
+        std::string object_str = str_command.substr(pos, end - pos + 1);
+    
+        InfoObject obj;
+        // Posar aquests valors per defecte, pq no els serveixen per res. 
+        // Si es crea un altre struct pels valors del reset es podria eliminar, 
+        // però he preferit reutilizar el struct que ja tenia pq té totes les dades que interessen.  
+        obj.angle = obj.linear_velocity = obj.angular_velocity = 0;
+
+        // ---- NAME ----
+        // Buscar i agafar el 'name'
+        size_t name_pos = object_str.find("\"name\"");
+        if (name_pos != std::string::npos) {
+            // Busca les ' ".." ' que contenen el valor del nom 
+            size_t init_name_pos = object_str.find("\"", name_pos + 6);
+            size_t end_name_pos = object_str.find("\"", init_name_pos + 1);
+            obj.name = object_str.substr(init_name_pos + 1, end_name_pos - init_name_pos -1);
+        }
+
+        // ---- POSITION ----
+        size_t pos_pos = str_command.find("\"position\""); 
+        if (pos_pos != std::string::npos) {
+            size_t bracket1 = object_str.find("[", pos_pos);
+            size_t bracket2 = object_str.find("]", bracket1);
+            std::string list = object_str.substr(bracket1 + 1, bracket2 - bracket1 - 1);
+
+            // Divideix la llista separada per comes i convierteix cada valor a float
+            std::stringstream ss(list);
+            std::string val;
+            while (std::getline(ss, val, ',')) {
+                obj.position.push_back(std::stof(val));
+            }
+        }
+
+        // ---- ROTATION ----
+        size_t rot_pos = object_str.find("\"rotation\"");
+        if (rot_pos != std::string::npos) {
+            
+            size_t ini_bracket = object_str.find("[", rot_pos);
+            size_t end_bracket = object_str.find("]", ini_bracket);
+            
+            if (ini_bracket != std::string::npos && end_bracket != std::string::npos) {
+                std::string list = object_str.substr(ini_bracket + 1, end_bracket - ini_bracket - 1);
+
+                std::stringstream ss(list);
+                std::string val;
+                while (std::getline(ss, val, ',')) {
+                    obj.rotation.push_back(std::stof(val));
+                }
+            }
+        }
+
+        result.push_back(obj);
+        pos = end + 1;
+    }
+
+    return result;
 }
 
 
@@ -456,38 +524,46 @@ void StonefishRL::ParseCommandsAndObservations(const std::string& str)
     }
 }
 
-void StonefishRL::SetRobotPosition(std::string robot_name, const float* position_data, int n_param)
+
+void StonefishRL::SetRobotPosition(const std::vector<InfoObject>& obj)
 {
-    sf::Robot *robot_ptr;
-    bool robot_found = false;
-    unsigned int id = 0;
-
-    robot_name.erase(robot_name.find(";")); // Borra el ';'
-
-    while ((robot_ptr = getRobot(id++)) != nullptr && !robot_found)
+    int i = 0;
+    while(i < obj.size())
     {
-        // Aquest if només esta fent el reset de la posició al robot que es passa pel command del RESET
-        if(robot_ptr->getName() == robot_name)
-        {     
-            robot_found = true;
-        
-            sf::Transform tf;
-            sf::Vector3 new_position(position_data[0], position_data[1], position_data[2]);
-            tf.setOrigin(new_position); // Mou el robot a la posició indicada
-            
-            // Per si també ens passen la rotació que li volen donar
-            if(n_param >= 6){
-                sf::Quaternion rotation(position_data[3], position_data[4], position_data[5]);
-                tf.setRotation(rotation);
-            }
-            
-            robot_ptr->Respawn(this, tf);
+        sf::Robot *robot_ptr;
+        bool robot_found = false;
+        unsigned int id = 0;
+        std::string robot_name = obj[i].name;
+
+        if(obj[i].position.size() < 3 || obj[i].rotation.size() < 3) {
+            std::cerr << "Error: Not enough values for the rotation or position of the robot '" << robot_name << "\n";
+            return;
         }
+        
+        while ((robot_ptr = getRobot(id++)) != nullptr && !robot_found)
+        {
+            // Aquest if només esta fent el reset de la posició al robot que es passa pel command del RESET
+            if(robot_ptr->getName() == robot_name)
+            {     
+                robot_found = true;
+            
+                sf::Transform tf;
+                sf::Vector3 new_position(obj[i].position[0], obj[i].position[1], obj[i].position[2]);
+                tf.setOrigin(new_position); // Mou el robot a la posició indicada
+                
+                sf::Quaternion rotation(obj[i].rotation[0], obj[i].rotation[1], obj[i].rotation[2]);
+                tf.setRotation(rotation); // Rota el robot 
+                
+                robot_ptr->Respawn(this, tf);
+            }
+        }
+
+        if(!robot_found) std::cout << "NOT ABLE TO FIND THE ROBOT BY THE GIVEN NAME: " + robot_name << std::endl; 
+        
+        i++;
     }
-
-    if(!robot_found) std::cout << "NOT ABLE TO FIND THE ROBOT BY THE GIVEN NAME: " + robot_name << std::endl; 
-
-    //return robot_found;
+    
+    if (i==0) std::cout << "[WARN] No robots have been reseted \n";
 }
 
 void StonefishRL::ExitRequest() {

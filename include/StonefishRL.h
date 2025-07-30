@@ -57,9 +57,13 @@ public:
     
     StateScene GetStateScene();
 
+    std::vector<InfoObject> ParseResetCommand(const std::string& str);
+
+    void ApplyReset(const std::vector<InfoObject>& objects);
+
     void ParseCommandsAndObservations(const std::string& str);
 
-    void SetRobotPosition(std::string cmd, const float* position_data, int n_param);
+    void SetRobotPosition(const std::vector<InfoObject>& obj);
     
     void ExitRequest();
 
@@ -114,6 +118,6 @@ ACCIONS QUE ES PODEN APLICAR:
 */
 
 /*
-El sensor de Odometria per saber la posició del braç (pinça del girona500)
-i si 'esta acostant gaire al obejcte, està acoplat al link "ECAEndEffector"
+El sensor de OdoGripper per saber la posició del braç (pinça del girona500)
+i si s'està acostant gaire al objecte, està acoplat al link "ECAEndEffector"
 */

@@ -1,7 +1,7 @@
 from EnvStonefishRL import EnvStonefishRL
 import numpy as np
-import struct
 import math
+import json
 from gymnasium import spaces
 from numpy import cos, pi, sin
 
@@ -153,24 +153,24 @@ class AcrobotEnv(EnvStonefishRL):
 
         x = self.np_random.uniform(low, high)
         y = self.np_random.uniform(low, high)
-        z = self.np_random.uniform(-4.0, -4.0)
+        z = -4.0
         roll = self.np_random.uniform(low, high)
         pitch = self.np_random.uniform(low, high)
-        yaw = self.np_random.uniform(-3.14, -3.14)
+        yaw = -3.14
 
-        valors = [x, y, z, roll, pitch, yaw] 
+        reset_dict = [{
+            "name": "Acrobot",
+            "position": [x, y, z],
+            "rotation": [roll, pitch, yaw]
+        }]
 
-        tipus_format = "f" * len(valors) # Posa a float tots els valors que hi ha al vector 'valors'
-        novesPosicions = struct.pack(tipus_format, *valors)
-        
         # Fer el reset de la posicio
-        obs = self.send_command("RESET:Acrobot;")
-        self.socket.send(novesPosicions)
+        obs = self.send_command("RESET:" + json.dumps(reset_dict) + ";")
         
-        super().reset(seed=seed, options=options)
+        super().reset(obs, seed=seed, options=options)
     
         n_steps = 100
-        #obs, rewad, terminated, truncated, info = self.step(action, command)
+
         obs = self.get_observation()
         for _ in range(n_steps): 
 
@@ -181,8 +181,6 @@ class AcrobotEnv(EnvStonefishRL):
 
             theta1 = math.atan2(sin_theta1, cos_theta1)
             theta2 = math.atan2(sin_theta2, cos_theta2)
-            #print("Valor del angle theta1: ", theta1)
-            #print("Valor del angle theta2: ", theta2)
 
             self.reduce_velocity_to_reset(theta1, theta2)
             obs = self.get_observation()

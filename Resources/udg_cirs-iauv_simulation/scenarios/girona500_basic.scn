@@ -36,6 +36,7 @@
 		<look name="tbar_front" gray="1.0" roughness="0.4" metalness="0.5" texture="/home/ubuntu/stonefish_rl/Resources/udg_cirs-iauv_simulation/data/girona500/tbar_front_tex.png"/>
 		<look name="lower_hull" gray="1.0" roughness="0.3" texture="/home/ubuntu/stonefish_rl/Resources/udg_cirs-iauv_simulation/data/girona500/lower_hull_tex.png"/>
 		<look name="gray" gray="0.5" roughness="0.4" metalness="0.5"/>
+		<look name="orange" rgb="1.0 0.3 0.0" roughness="0.2"/>
 		<look name="propeller" gray="1.0" roughness="0.3" texture="/home/ubuntu/stonefish_rl/Resources/udg_cirs-iauv_simulation/data/girona500/propeller_tex.png"/>
 		<look name="duct" gray="0.1" roughness="0.4" metalness="0.5"/>
 		<look name="cirs_tank" gray="1.0" roughness="0.3" texture="/home/ubuntu/stonefish_rl/Resources/udg_cirs-iauv_simulation/data/pool/CIRSPool.png"/>

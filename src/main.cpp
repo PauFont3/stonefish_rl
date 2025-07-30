@@ -74,7 +74,6 @@ int learning(void* data) {
         
         std::cout << "[INFO] Delta Time = " << delta_time << " segons" << std::endl;
         std::cout << "[INFO] Steps per second: " << steps_per_second << std::endl;
-
     }
 
     std::cout << "[INFO] Learning thread finished after " << contador << " steps." << std::endl;
@@ -98,14 +97,6 @@ int main(int argc, char **argv) {
     sf::RenderSettings r;
     r.windowW = 900;
     r.windowH = 700;
-    /*r.shadows = sf::RenderQuality::LOW;
-    r.ao = sf::RenderQuality::LOW;
-    r.atmosphere = sf::RenderQuality::LOW;
-    r.ocean = sf::RenderQuality::LOW;
-    r.aa = sf::RenderQuality::LOW;
-    r.ssr = sf::RenderQuality::LOW;
-    */
-   
     
     StonefishRL* simManager = new StonefishRL(scene_path, frequency);
 

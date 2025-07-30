@@ -16,11 +16,6 @@ class EnvStonefishRL(gym.Env):
 
         self.state = {} # Diccionari amb tota la informació 
 
-        # Tindra els noms dels objectes de l'escena calsssificats segons el tipus q siguin
-        #self.robots = []
-        #self.actuators = []
-        #self.sensors = []
-
         # S'emplenaran segons les accions o observacions que vulgem fer
         #self.action_space = spaces.Dict({})       # A la classe filla ja es definiran i agafaran un tipus concret
         #self.observation_space = spaces.Dict({})  # Encara no sabem quants actuadors o sensors tindran. 
@@ -90,68 +85,27 @@ class EnvStonefishRL(gym.Env):
         print("[INFO] SIMULACIÓ ACABADA.")  
 
 
-    def reset(self, *, seed=None, options=None):
+    def reset(self, obs, seed=None, options=None):
         #super().reset(seed=seed)
-        msg = self.socket.recv_string()
-        self._process_and_update_state(msg)
+        #msg = self.socket.recv_string()
+        self._process_and_update_state(obs)
 
         super().reset(seed=seed)
 
         return self.state
     
 
-    #def list_objects_by_type(self):
-        """
-            Clasifica els objectes segons el tipus q siguin, es basa en el seu nom
-            - Robots: nom sense '/'
-            - Actuadors: noms que comencen per 'Servo'. Agafa el que hi ha després de '/'
-            - Sensors: noms que cemencen per 'Encoder'. Agafa el que hi ha després de '/'
-            Retorna llistes: (robots, actuators, sensors).
-        """
-        
-        robots = []
-        sensors = []
-        actuators = []
-
-        if isinstance(self.state, dict):
-
-            for name in self.state.keys():
-                
-                if '/' in name:
-                    base_name = name.split('/')[-1] # El '-1' és per: P.ex. "Acrobot/Servo" --> "Servo"
-        
-                    if base_name.startswith("Servo"):
-                        actuators.append(name)
-                    
-                    elif base_name.startswith("Encoder"):
-                        sensors.append(name)
-                    
-                    else:
-                        pass # No es cap d'aquests dos tipus
-                
-                else: # Si no hi ha '/', és un robot
-                    robots.append(name)
-                
-            print("Actuators: ", actuators)
-            print("Sensors: ", sensors)
-            print("Robots: ", robots)    
-            
-        return actuators, sensors, robots
-
-
     def step(self, message, steps):
         """
         Envia les accions al simulador i rep les observacions
         """
         for i in range(steps):
-            #print (f"[INFO] Fent el pas {i+1}/{steps}")
             msg = self.send_command(message)
 
         # Processar l'ultim estat rebut
         self._process_and_update_state(msg)
-        #self.print_full_state()
+        self.print_full_state()
         
-
     
     def print_full_state(self):
         """

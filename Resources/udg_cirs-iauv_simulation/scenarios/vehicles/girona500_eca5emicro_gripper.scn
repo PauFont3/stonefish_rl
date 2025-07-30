@@ -648,9 +648,9 @@
 	<robot name="Ball" fixed="false" self_collisions="false">
         <base_link name="BallBase" type="sphere" physics="submerged">
             <dimensions radius="0.2"/>
-            <origin xyz="5.0 5.0 0.0" rpy="0.0 0.0 0.0"/>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
             <material name="Aluminium"/>
-            <look name="Blue"/>
+            <look name="orange"/>
         </base_link>
         <world_transform xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     </robot>
