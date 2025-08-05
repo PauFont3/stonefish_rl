@@ -1,20 +1,25 @@
-# Entorn de Reinforcement Learning amb Stonefish
+# AcrobotEnv – Entorn de Reinforcement Learning amb Stonefish
 
-Aquest projecte implementa un entorn d’aprenentatge per reforç (Reinforcement Learning) per entrenar un robot `Acrobot` utilitzant la biblioteca **Gymnasium**. 
-La simulació física es fa amb **Stonefish** (C++) i la comunicació  entre Python i el simulador es fa a través de **ZeroMQ**. 
-L’objectiu de l’agent és aprendre a balancejar l’Acrobot perquè l’extrem del 2n braç (segona articulació) superi una altura determinada, partint d’una posició inicial en repòs vertical. 
+Aquest entorn implementa un escenari d’aprenentatge per reforç (Reinforcement Learning) per controlar un robot `Acrobot` utilitzant la biblioteca **Gymnasium**. 
+
+La simulació física es fa amb **Stonefish** (C++) i la comunicació entre Python i el simulador es gestiona a través de **ZeroMQ**.
+L’objectiu de l’agent és aprendre a balancejar l’Acrobot perquè l’extrem del seu segon braç superi una altura determinada, partint des d’una posició inicial en repòs. 
+
+---
 
 ## Requisits Previs
 
 Abans de començar, assegura’t de tenir instal·lats els següents components:
-- **Stonefish Simulator (v1.5.0 o superior)**: És necessari tenir Stonefish instal·lat al teu sistema. Asegura’t que les variables d’entorn (`STONEFISH_PATH`, etc.) estiguin configurades correctament.
+- **Stonefish Simulator (v1.5.0 o superior)** 
 - **CMake**: Versió 3.10 o superior.
 - **Compilador de C++**: Compilador compatible amb C++17 (p.ex: `g++`).
-- **ZeroMQ**: La biblioteca de ZeroMQ.
-- **Python 3.10** i `pip`. 
+- **ZeroMQ**: La biblioteca de ZeroMQ. (Tant en C++ com en Python: `cppzmq`, `pyzmq`)  
+- **Python 3.10** amb `gymnasium`, `stable-baselines3`, etc.
+- Fitxer `requirements.txt` amb les dependències de Python
+
+---
 
 ## Instal·lació i Execució:
-Per compilar i executar el projecte:
 
 ### 1. Clonar i Preparar l’Entorn
 ```bash 
@@ -43,41 +48,35 @@ make
 ```
 
 ### 3. Executar l’Entorn 
-S’han d’obrir **2 terminals**. 
 
-**Terminal 1: Iniciar el Simulador C++** 
-En aquesta terminal, executa el simulador. Ha d’estar obert mentre utilitzes els scripts de Python. 
+Els scripts de Python ja executen automàticament el simulador de Stonefish amb l’escena corresponent, per tant **només cal tenir l’entorn Python activat** i executar el script que es vulgui.
+
+**Activar l'entorn virtual**
 #### Desde l’arrel del projecte
-```bash  
-./build/StonefishRLTest /home/ubuntu/stonefish_rl/Resources/acrobot/acrobot_scene.xml
-``` 
-Si tot va bé, veuràs la finestra de la simulació i els logs de Stonefish. 
+```bash
+source env_rl/bin/activate
+```
 
-**Terminal 2: Executar els Scripts de Python** 
-En aquesta 2a terminal, assegurat de tenir l’entorn virtual de Python activat (`source env/bin/activate`). 
-
-#### A. Entrenar un Nou Agent
+** A. Entrenar un Nou Agent **
 Per entrenar un agent des de zero utilitzant Stable-Baselines3 (PPO): 
 ```bash 
-python python/acro_training.py 
+python scripts/acrobot/acro_training.py
 ``` 
 
-El progrés de l’entrenament es mostrarà a la terminal. En finalitzar, es guardarà el model entrenat (p.ex: `ppo_acrobot_stonefish.zip`).
-
-#### B. Avaluar un Agent Entrenat 
+** B. Avaluar un Agent Entrenat **
 Per veure com es comporta un agent ja entrenat (assegurat que l’arxiu del model existeix): 
 ```bash 
-python python/evaluate_acro.py 
+python scripts/acrobot/evaluate_acro.py
 ``` 
-Aquest script carregarà el model guardat i l’executarà a l’entorn, mostrant el seu rendiment. 
 
-#### C. Fer Proves Manuals
-Per provar l’entron sense model amb l’entorn enviant accions aleatòries (útil per depuració): 
+** C. Fer Proves Manuals (DEBUG)**
+Per provar l’entron sense model, enviant accions aleatòries: 
 ```bash 
-python python/test_acrobot.py 
+python scripts/acrobot/test_acrobot.py
 ```
 
 #### Notes Importants
+- Durant l’execució, s’obrirà automàticament una finestra de simulació Stonefish amb l’escena acrobot_scene.xml carregada.
 - Si després d’un reset, l’Acrobot segueix balancejant-se, pot ser per la velocitat residual del robot.
 
 
