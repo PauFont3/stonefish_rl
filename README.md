@@ -13,7 +13,7 @@ Aquest repositori conté diversos entorns de simulació basats en **Stonefish** 
 - **Reinforcement Learning**: Gymnasium + stable-baselines3
 - **Comunicació**: ZeroMQ (pyzmq + cppzmq)
 
-## 📁 Estructura del projecte
+## Estructura del projecte
 
 ```bash
 stonefish_rl/
@@ -22,7 +22,6 @@ stonefish_rl/
 ├── logs/                            # Models PPO i arxius d’avaluació de l'entrenament
 │   ├── best_model.zip
 │   └── evaluations.npz
-├── ppo_acrobot_stonefish_50000_5_4__7_0.zip                        # Model entrenat de l' Acrobot
 ├── requirements.txt                 # Dependències Python
 ├── Resources/                       # Escenes, models i textures per Stonefish
 │   ├── acrobot/
@@ -49,7 +48,6 @@ stonefish_rl/
 ├── src/                             # Codi font en C++
 │   ├── main.cpp
 │   └── StonefishRL.cpp
-├── build/                           # Carpeta de compilació del simulador (StonefishRLTest) (NO apareix al repositori)
 └── docs/                            # Documentació per cada entorn
     ├── README_acrobot.md
     ├── README_g500.md
