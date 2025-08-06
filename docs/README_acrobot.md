@@ -30,8 +30,8 @@ git clone “https://github.com/PauFont3/stonefish_rl.git”
 cd stonefish_rl
 
 # 3. Crear i activar un entorn virtual per Python 
-python3 -m venv env 
-source env/bin/activate 
+python3 -m venv env_rl
+source env_rl/bin/activate 
 
 # 4. Instal·lar les dependències de Python 
 pip install -r requirements.txt 
