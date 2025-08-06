@@ -44,7 +44,9 @@ python scripts/g500/test_G500.py
 4. Python interpreta aquest JSON, calcula la recompensa (reward) i detecta si s'ha acabat l'episodi (terminated o truncated).
 
 ## Observacions i accions
-L’observació (obs) conté:
+> El número entre parèntesis indica la longitud del vector corresponent.
+
+Una observació (obs) és un vector de 38 valors reals:
 - Posició de la bola (3)
 - Posició i rotació del Girona500 (6)
 - Velocitat lineal i angular del Girona500 (6)
@@ -52,10 +54,20 @@ L’observació (obs) conté:
 - Angles de les joints (6)
 - Última acció aplicada (11)
 
+Les accions son un vector de 11 valors reals:
+- 5 Thrusters (TORQUE): rang [-10.0, 10.0]
+- 6 Servos (VELOCITY): rang [-1.0, 1.0]
 
+## Politica per acabar un episodi
+- terminated = True: si el gripper està **<=0.5 metres** de la bola
+- truncated = True: si passen 30 segons (definits per search_time) i no ho ha aconseguit
 
-
-
-
-
-
+## Reward
+```bash
+La funció de recompensa és:
+if dist > 0.5:
+    reward = -dist
+else:
+    reward = 0
+```
+Per tant, com més a prop estigui el gripper de la bola, més gran serà el reward.
