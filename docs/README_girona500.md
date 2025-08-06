@@ -19,23 +19,28 @@ Abans de començar, assegura’t de tenir instal·lats els següents components:
 ## Executar l'entorn
 Els scripts de Python executen automàticament el simulador de Stonefish amb l’escena adequada. Només cal executar el script que vulguem amb l’entorn Python activat:
 
+
 **A. Entrenar un Nou Agent**
 Entrena un agent PPO per controlar el Girona500 utilitzant Stable-Baselines3. El millor model es guardarà a `logs/best_model.zip`.
 ```bash 
 python scripts/g500/G500_training_ppo.py
 ``` 
 
+
 **B. Avaluar un Agent Entrenat**
 Carrega el model logs/best_model.zip i mostra el seu rendiment. Si el gripper s’aconsegueix acostar a **<= 0.5m** de la bola, l’episodi es considerarà assolit i `terminated = True`.
 ```bash 
 python scripts/g500/evaluate_g500.py
-``` 
+```
+
 
 **C. Fer Proves Manuals (DEBUG)**
 Per provar l’entron sense model, envia accions aleatòries al robot `girona500`.
 ```bash 
 python scripts/g500/test_G500.py
 ```
+
+---
 
 ## Funcionament intern de l'entorn
 1. Python (G500Env.py) crea una connexió utilitzant ZeroMQ cap al servidor C++ (StonefishRLTest).
@@ -58,7 +63,7 @@ Les accions son un vector de 11 valors reals:
 - 5 Thrusters (TORQUE): rang [-10.0, 10.0]
 - 6 Servos (VELOCITY): rang [-1.0, 1.0]
 
-## Politica per acabar un episodi
+## Política per acabar un episodi
 - terminated = True: si el gripper està **<=0.5 metres** de la bola
 - truncated = True: si passen 30 segons (definits per search_time) i no ho ha aconseguit
 
