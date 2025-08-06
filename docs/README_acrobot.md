@@ -83,9 +83,9 @@ python scripts/acrobot/test_acrobot.py
 
 ## Com Funciona 
 1. El **servidor C++ (`StonefishRLTest`)** carrega l’escena (`.xml`) i espera una connexió entrant pel port 5555.
-2. El **client Python (`AcrobotEnv.py`)** es connecta al servidor a través de ZeroMQ.
-3. En cridar a `env.step(action)`, Python envia una comanda `CMD:TORQUE...` al simulador C++.
+2. El **client Python (`EnvStonefishRL.py`)** es connecta al servidor a través de ZeroMQ.
+3. Al cridar a `env.step(...)`, Python envia una comanda al simulador C++, p.ex:`CMD:TORQUE...`.
 4. El simulador aplica el torque, avança la simulació uns quants passos (`dt`), i obté les noves lectures dels sensors.
 5. Aquestes lectures es serialitzen en format JSON i s'envien de tornada a Python.
-6. Python processa aquest JSON, actualitza el seu estat intern i calcula la recompensa i si s'han satisfet les condicions de fi de l’episodi (`terminated` i `truncated`).
-7. El mètode `reset()` envia una comanda especial `"RESET"` que desencadena una funció `robot->Reset()` en C++ para restaurar l’estat inicial del robot.
+6. Python processa aquest JSON, actualitza el seu estat intern, calcula la recompensa i comprova si s'han satisfet les condicions de fi de l’episodi (`terminated` i `truncated`).
+7. El mètode `reset(...)` envia una comanda especial `"RESET"` que activa la funció `robot->Reset()` en C++ per restaurar l’estat inicial del robot.
