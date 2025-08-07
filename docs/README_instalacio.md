@@ -2,19 +2,55 @@
 
 ## Requisits Previs
 
-Abans de començar, assegura’t de tenir instal·lats els següents components:
-- **Stonefish Simulator (v1.5.0 o superior)** 
-- **CMake**: Versió 3.10 o superior.
-- **Compilador de C++**: Compilador compatible amb C++17 (p.ex: `g++`).
-- **ZeroMQ**: La biblioteca de ZeroMQ. (Tant en C++ com en Python: `cppzmq`, `pyzmq`)  
-- **Python 3.10** amb `gymnasium`, `stable-baselines3`, etc.
-- Fitxer `requirements.txt` amb les dependències de Python
+Abans de començar, assegura’t de tenir instal·lats al sistema els següents components:
+- **Python 3.10** i el gestor de paquets `pip`
+- **CMake** (Versió 3.10 o superior) i un compilador compatible amb C++17 (p.ex: `g++`).
+- **ZeroMQ**: La biblioteca de comunicació entre C++ i Python (`libzmq3-dev`, `cppzmq`, `pyzmq`).
+- **Stonefish** (v1.5.0 o superior) Simulador instal·lat i funcional. 
 
 ---
 
-## Instal·lació i Execució:
+## Preparar el sistema (Recomanat utilitzar Ubuntu 22.04)
+> Si s'utilitza **Ubuntu 20.04**, cal assegurar-se de tenir instal·lat Python 3.10, ja que no ve per defecte al sistema.
+
+```bash
+# 1. Actualitzar els paquets del sistema
+sudo apt update
+sudo apt upgrade
+
+# 2. Instal·lar Python 3.10 i eines pels entorns virtuals
+sudo apt install python3.10
+sudo apt install python3.10-venv
+sudo apt install python3-pip
+
+# 3. Instal·lar git (si no està ja instal·lat)
+sudo apt install git
+
+# 4. Instal·lar CMake i el compilador C++
+sudo apt install cmake
+sudo apt install g++
+
+# 5. Instal·lar la biblioteca ZeroMQ per C++
+sudo apt install libzmq3-dev
+
+# 6. Instal·lar cppzmq (bindings per C++)
+git clone https://github.com/zeromq/cppzmq.git
+cd cppzmq
+mkdir build
+cd build
+cmake ..
+sudo make install
+
+# 7. (Opcional) Tornar al directori anterior
+cd ../..
+```
+
+---
+
+## Instal·lació del projecte
 
 ### 1. Clonar i Preparar l’Entorn
+
 ```bash 
 # 1. Clonar el repositori
 git clone “https://github.com/PauFont3/stonefish_rl.git”
@@ -23,21 +59,22 @@ git clone “https://github.com/PauFont3/stonefish_rl.git”
 cd stonefish_rl
 
 # 3. Crear i activar un entorn virtual per Python 
-python3 -m venv env_rl
+python3.10 -m venv env_rl
 source env_rl/bin/activate 
 
 # 4. Instal·lar les dependències de Python 
 pip install -r requirements.txt 
 ```
+> Recordatori: Si es tanca la terminal, s'haurà de reactivar l'entorn amb: `source env_rl/bin/activate`
 
 ### 2. Compilar el Simulador C++ 
-Utilitzar CMake per compilar l’executable del simulador. L’executable es dirà `StonefishRLTest` (segons el teu `CMakeLists.txt`). 
+Utilitzar CMake per compilar l’executable del simulador. L’executable es dirà `StonefishRLTest` (segons el `CMakeLists.txt` que he creat). 
 ```bash 
 # Desde l’arrel del projecte
 mkdir -p build 
 cd build 
 cmake .. 
-make -j$(nproc) # Accelera la compilació, utilitzarà els nuclis que tingui disponibles la CPU
+make -j$(nproc)
 ```
-> `make-j$(nproc)` Accelera la compilaciódel programa, utilitzarà els nuclis que tingui disponibles la CPU. En cas que no es vulgui utilitzar la compilació paral·lela, sempre es pot utilitzar `make` el qual només utilitzarà 1 nucli.
+> `make -j$(nproc)` Accelera la compilaciódel programa, utilitzarà els nuclis que tingui disponibles la CPU. En cas que no es vulgui utilitzar la compilació paral·lela, sempre es pot utilitzar `make` el qual només utilitza 1 nucli.
 
