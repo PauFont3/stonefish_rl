@@ -466,7 +466,7 @@
 			<noise force="0.25" torque="0.005"/>
 		</sensor>
 
-	<!-- Vision Sensor -->
+	<!-- Vision Sensor 
 		<sensor name="camera_front" type="camera" rate="10.0">
 			<link name="Vehicle"/>
 			<origin rpy="1.2 0.0 1.571" xyz="0.45 0.0 -0.1"/>
@@ -474,13 +474,14 @@
 			<rendering spp="1"/>
 		</sensor>
 
-	<!-- Vision Sensor -->
+	Vision Sensor 
 		<sensor name="eca_5emicro_manipulator/camera" type="camera" rate="10.0">
 			<link name="ECAEndEffector"/>
 			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.08"/>
 			<specs resolution_x="640" resolution_y="480" horizontal_fov="70.06"/>
             <rendering spp="1" minimum_distance="0.01" maximum_distance="100.0"/>
 		</sensor>
+	-->
 
 	<!-- Scalar Sensor --> <!-- Sensor per saber la posició i orientació del braç del girona500 -->
 		<sensor name ="OdoGripper" type="odometry" rate="30.0">
