@@ -32,11 +32,21 @@ public:
     struct InfoObject 
     {
         std::string name;
+    
+        float angle;
+        float pressure;
+    
         std::vector<float> position;
         std::vector<float> rotation;
-        float angle;
-        float linear_velocity;
-        float angular_velocity;
+        
+        std::vector<float> linear_velocity;
+        std::vector<float> linear_acceleration;
+        std::vector<float> angular_velocity;
+    
+        std::vector<float> force; 
+        std::vector<float> torque; 
+
+        std::vector<float> gps; // Pos: [0] latitude, [1] longitude, [2] North, [3] East
     };
 
     // Conté tots els obejctes de l'escena
