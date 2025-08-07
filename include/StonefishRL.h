@@ -27,38 +27,26 @@ public:
 // d'afegir a les funcions: 'InfoObjectToJson', 'FillWithNanInfoObject' i 'GetStateScene'
 // pq son les que envien les dades cap al python.
 
-
-    // Pel sensor de gps del robot
-    struct Coordinates
-    {
-        float latitude;    
-        float longitude;
-        float north;
-        float east;  
-    };
-
-    // Pel sensor de Force_torque 
-    struct ForceTorque
-    {
-        float force_x; 
-        float force_y; 
-        float force_z;
-        float torque_x;
-        float torque_y;
-        float torque_z;
-    };
-
+    
     // Conté tota l'informació d'un objecte de l'escena
     struct InfoObject 
     {
         std::string name;
-        std::vector<float> position;
-        std::vector<float> rotation; // Afegit
-        Coordinates coord; // Afegit
-        ForceTorque force_torq; // Afegit
+    
         float angle;
-        float linear_velocity;
-        float angular_velocity;
+        float pressure;
+    
+        std::vector<float> position;
+        std::vector<float> rotation;
+        
+        std::vector<float> linear_velocity;
+        std::vector<float> linear_acceleration;
+        std::vector<float> angular_velocity;
+    
+        std::vector<float> force; 
+        std::vector<float> torque; 
+
+        std::vector<float> gps; // Pos: [0] latitude, [1] longitude, [2] North, [3] East
     };
 
     // Conté tots els obejctes de l'escena
@@ -79,9 +67,13 @@ public:
     
     StateScene GetStateScene();
 
+    std::vector<InfoObject> ParseResetCommand(const std::string& str);
+
+    void ApplyReset(const std::vector<InfoObject>& objects);
+
     void ParseCommandsAndObservations(const std::string& str);
 
-    bool SetRobotPosition(std::string cmd, const float* position_data, int n_param);
+    void SetRobotPosition(const std::vector<InfoObject>& obj);
     
     void ExitRequest();
 
@@ -132,10 +124,10 @@ ACCIONS QUE ES PODEN APLICAR:
         - POSITION 
     
     - THRUSTER:
-        - TORQUE (Dona una velocitat de rotació)
+        - TORQUE (Dona una velocitat de rotació a les helices del thrusters)
 */
 
 /*
-El sensor de Odometria per saber la posició del braç (pinça del girona500)
-i si 'esta acostant gaire al obejcte, està acoplat al link "ECAEndEffector"
+El sensor de OdoGripper per saber la posició del braç (pinça del girona500)
+i si s'està acostant gaire al objecte, està acoplat al link "ECAEndEffector"
 */

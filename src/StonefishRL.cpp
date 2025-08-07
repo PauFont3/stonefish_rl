@@ -31,6 +31,7 @@
 #include <Stonefish/actuators/Thruster.h>
 #include <Stonefish/actuators/LinkActuator.h>
 #include <Stonefish/actuators/JointActuator.h>
+#include <Stonefish/actuators/Light.h>
 
 #include <Stonefish/core/Robot.h>
 
@@ -102,7 +103,7 @@ std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
 void StonefishRL::SendObservations()
 {
     StateScene scalar_observations = GetStateScene();
-    //ProvaMostrarTot();
+    ProvaMostrarTot();
     // Convertir les observacions a string
     std::string obs_str_json = SerializeScene(scalar_observations.observations);
     
@@ -182,6 +183,36 @@ void StonefishRL::ApplyCommands(const std::string& str_cmds)
                         std::cout << "[WARNING] Unknown command '" << action << "' for servo '" << actuator_name << "'\n";
                     }
                 }
+                break;
+            }
+
+
+            std::cout << "CASI PERO NOPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE" << std::endl;
+            // LIGHT
+            case sf::ActuatorType::LIGHT:
+            {
+                std::cout << "HE ENTRAT A LIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIGHT" << std::endl;
+                sf::Light *light = dynamic_cast<sf::Light *>(actuator_ptr);
+                if (!light)
+                {
+                    std::cout << "[WARNING] Not converted " << actuator_name << " to LIGHT.\n";
+                    break;
+                }
+                
+                for (const auto &[action, action_value] : commands_[actuator_name])
+                {
+                    if(action == "LIGHT_ON"){
+                        std::cout << "YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEY" << std::endl;
+                        light->Switch(true);
+                    }
+                    else if(action == "LIGHT_OFF") {
+                        std::cout << "YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEY" << std::endl;
+                        light->Switch(false);
+                    }  
+                    else 
+                        std::cout << "[WARNING] Unknown command '" << action << "' for light '" << actuator_name << "'\n";
+                }
+                
                 break;
             }
 
@@ -279,17 +310,18 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
 
         if (ObjImportantForObs(sensor_name)) // POTSER S'HAURIA DE TREURE?
         {
-            sf::ScalarSensor *sensor = dynamic_cast<sf::ScalarSensor *>(sensor_ptr); // POTSER NO CAL REPETIRHO SEMPRE
+            sf::ScalarSensor *sensor = dynamic_cast<sf::ScalarSensor *>(sensor_ptr);
+            if (!sensor) continue;
+            
+            InfoObject obs; // El poso aqui pq cada cop que es troba un objecte nou, no pugui tenir cap possible dada de l'anterior
+            FillWithNanInfoObject(obs);
+            
+            obs.name = sensor_name;
             
             // ENCODING SENSOR
             if(sensor->getScalarSensorType() == sf::ScalarSensorType::ENCODER)
             {
-                if (!sensor) continue;
-                
-                InfoObject obs; // El poso aqui pq cada cop que es troba un objecte nou, no pugui tenir cap possible dada de l'anterior
-                FillWithNanInfoObject(obs);
-                obs.name = sensor_name;
-                obs.angle = sensor->getLastSample().getValue(0);
+                obs.angle = sensor->getLastSample().getValue(0); // Angle del sensor
                 obs.angular_velocity[2] = sensor->getLastSample().getValue(1); // Posem l'unic valor que dona a l'eix Z i després al python ho tractarem
 
                 state.observations.push_back(obs);
@@ -298,48 +330,32 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
             // ODOMETRY SENSOR
             if(sensor->getScalarSensorType() == sf::ScalarSensorType::ODOM)
             {
-                if(!sensor) continue;
+                obs.position[0] = sensor->getLastSample().getValue(0); // Position X
+                obs.position[1] = sensor->getLastSample().getValue(1); // Position Y 
+                obs.position[2] = sensor->getLastSample().getValue(2); // Position Z
 
-                InfoObject obs;
-                FillWithNanInfoObject(obs);
-                obs.name = sensor_name;
-                obs.position[0] = sensor->getLastSample().getValue(0);
-                obs.position[1] = sensor->getLastSample().getValue(1);
-                obs.position[2] = sensor->getLastSample().getValue(2);
-
-                obs.linear_velocity[0] = sensor->getLastSample().getValue(3);
-                obs.linear_velocity[1] = sensor->getLastSample().getValue(4);
-                obs.linear_velocity[2] = sensor->getLastSample().getValue(5);
+                obs.linear_velocity[0] = sensor->getLastSample().getValue(3); // Linear velocity X
+                obs.linear_velocity[1] = sensor->getLastSample().getValue(4); // Linear velocity Y
+                obs.linear_velocity[2] = sensor->getLastSample().getValue(5); // Linear velocity Z
                 
-                obs.rotation[0] = sensor->getLastSample().getValue(6);
-                obs.rotation[1] = sensor->getLastSample().getValue(7); 
-                obs.rotation[2] = sensor->getLastSample().getValue(8);
-                float rot_w = sensor->getLastSample().getValue(9);
+                obs.rotation[0] = sensor->getLastSample().getValue(6); // Rotation X
+                obs.rotation[1] = sensor->getLastSample().getValue(7); // Rotation Y
+                obs.rotation[2] = sensor->getLastSample().getValue(8); // Rotation Z
+                float rot_w = sensor->getLastSample().getValue(9); // No es guarda al struct pq no m'interessa ara mateix, pero sino seria fer el mateix procediment 
+                                                                   // que al posar un nou sensor, pero amb la diferencia que el sensor ja està creat, només seria afegir
+                                                                   // aquest paràmetre que falta al sensor (Odomentry Sensor) en aquest cas.
 
-                obs.angular_velocity[0] = sensor->getLastSample().getValue(10);
-                obs.angular_velocity[1] = sensor->getLastSample().getValue(11);
-                obs.angular_velocity[2] = sensor->getLastSample().getValue(12);
+                obs.angular_velocity[0] = sensor->getLastSample().getValue(10); // Angular velocity X
+                obs.angular_velocity[1] = sensor->getLastSample().getValue(11); // Angular velocity Y
+                obs.angular_velocity[2] = sensor->getLastSample().getValue(12); // Angular velocity Z
                 
                 state.observations.push_back(obs);
             }
 
-            // GPS SENSOR
-            else if(sensor->getScalarSensorType() == sf::ScalarSensorType::GPS)
-            {
-                if(!sensor) continue;
-            
-            }
-            
             // PRESSURE SENSOR
             else if(sensor->getScalarSensorType() == sf::ScalarSensorType::PRESSURE)
             {
-                if(!sensor) continue;
-
-                InfoObject obs;
-                FillWithNanInfoObject(obs);
-            
-                obs.name = sensor_name;
-                obs.pressure = sensor->getLastSample().getValue(0);
+                obs.pressure = sensor->getLastSample().getValue(0); // Pressure
 
                 state.observations.push_back(obs);
             }
@@ -347,18 +363,41 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
             // FORCE_TORQUE SENSOR
             else if(sensor->getScalarSensorType() == sf::ScalarSensorType::FT)
             {
-                if(!sensor) continue;
+                obs.force[0] = sensor->getLastSample().getValue(0); // Force X
+                obs.force[1] = sensor->getLastSample().getValue(1); // Force Y
+                obs.force[2] = sensor->getLastSample().getValue(2); // Force Z
+                obs.torque[0] = sensor->getLastSample().getValue(3); // Torque X
+                obs.torque[1] = sensor->getLastSample().getValue(4); // Torque Y
+                obs.torque[2] = sensor->getLastSample().getValue(5); // Torque Z
 
-                InfoObject obs;
-                FillWithNanInfoObject(obs);
+                state.observations.push_back(obs);
+            }
+
+            // GPS SENSOR
+            else if(sensor->getScalarSensorType() == sf::ScalarSensorType::GPS)
+            {
+                obs.gps[0] = sensor->getLastSample().getValue(0); // Latitude
+                obs.gps[1] = sensor->getLastSample().getValue(1); // Longitude
+                obs.gps[2] = sensor->getLastSample().getValue(2); // North
+                obs.gps[3] = sensor->getLastSample().getValue(3); // East
+                
+                state.observations.push_back(obs);
+            }
             
-                obs.name = sensor_name;
-                obs.force[0] = sensor->getLastSample().getValue(0);
-                obs.force[1] = sensor->getLastSample().getValue(1);
-                obs.force[2] = sensor->getLastSample().getValue(2);
-                obs.torque[0] = sensor->getLastSample().getValue(3);
-                obs.torque[1] = sensor->getLastSample().getValue(4);
-                obs.torque[2] = sensor->getLastSample().getValue(5);
+            // IMU_FILTER SENSOR
+            else if(sensor->getScalarSensorType() == sf::ScalarSensorType::IMU)
+            {
+                obs.rotation[0] = sensor->getLastSample().getValue(0); // Roll
+                obs.rotation[1] = sensor->getLastSample().getValue(1); // Pitch
+                obs.rotation[2] = sensor->getLastSample().getValue(2); // Yaw
+
+                obs.angular_velocity[0] = sensor->getLastSample().getValue(3); // Angular velocity X
+                obs.angular_velocity[1] = sensor->getLastSample().getValue(4); // Angular velocity Y
+                obs.angular_velocity[2] = sensor->getLastSample().getValue(5); // Angular velocity Z
+                
+                obs.linear_acceleration[0] = sensor->getLastSample().getValue(6); // Linear acceleration X
+                obs.linear_acceleration[1] = sensor->getLastSample().getValue(7); // Linear acceleration Y
+                obs.linear_acceleration[2] = sensor->getLastSample().getValue(8); // Linear acceleration Z
 
                 state.observations.push_back(obs);
             }
@@ -371,31 +410,27 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
         std::string actuator_name = actuator_ptr->getName();
         if (ObjImportantForObs(actuator_name))
         {
+            InfoObject obs;
+            FillWithNanInfoObject(obs);
+            obs.name = actuator_ptr->getName();
+            
             // SERVO ACTUATOR
             if (actuator_ptr->getType() == sf::ActuatorType::SERVO)
             {   
                 sf::Servo *servo_ptr = dynamic_cast<sf::Servo *>(actuator_ptr);
                 if (!servo_ptr) continue;
                 
-                InfoObject obs;
-                FillWithNanInfoObject(obs);
-                obs.name = actuator_ptr->getName();
-
                 obs.angle = servo_ptr->getPosition();
                 obs.angular_velocity[2] = servo_ptr->getVelocity();
             
                 state.observations.push_back(obs);
             }
-        /* El deixo cometat pq ara no m'interessen els valors dels thrusters
+
             // THRUSTER ACTUATOR
             else if (actuator_ptr->getType() == sf::ActuatorType::THRUSTER)
             {
                 sf::Thruster *thruster_ptr = dynamic_cast<sf::Thruster *>(actuator_ptr);
                 if (!thruster_ptr) continue;
-
-                InfoObject obs;
-                FillWithNanInfoObject(obs);
-                obs.name = actuator_ptr->getName();
 
                 obs.angle = thruster_ptr->getSetpoint();
 
@@ -403,7 +438,20 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
 
                 state.observations.push_back(obs);
             }
-        */        
+
+            // LIGHT ACTUATOR
+            else if (actuator_ptr->getType() == sf::ActuatorType::LIGHT)
+            {
+                sf::Light* light_ptr = dynamic_cast<sf::Light*>(actuator_ptr);
+                
+                light_ptr->Switch(true);
+
+                // No hi ha cap dada que ens interessi de moment
+                obs.angle = 0; // Per evitar que es quedi amb NaN
+                obs.angular_velocity[2] = 0; // Per evitar que es quedi amb NaN
+
+                state.observations.push_back(obs);
+            }
         }
     }
     current_state_ = state;
@@ -697,6 +745,10 @@ std::string StonefishRL::InfoObjectToJson(const InfoObject& obj)
         << SafeFloat(obj.linear_velocity[0]) << ", "
         << SafeFloat(obj.linear_velocity[1]) << ", "
         << SafeFloat(obj.linear_velocity[2]) << "], "
+        << "\"linear_acceleration\": [" 
+        << SafeFloat(obj.linear_acceleration[0]) << ", "
+        << SafeFloat(obj.linear_acceleration[1]) << ", "
+        << SafeFloat(obj.linear_acceleration[2]) << "], "
         << "\"pressure\": " << SafeFloat(obj.pressure) << ", "
         << "\"force\": ["
         << SafeFloat(obj.force[0]) << ", "
@@ -705,7 +757,12 @@ std::string StonefishRL::InfoObjectToJson(const InfoObject& obj)
         << "\"torque\": ["
         << SafeFloat(obj.torque[0]) << ", "
         << SafeFloat(obj.torque[1]) << ", "
-        << SafeFloat(obj.torque[2]) << "] "
+        << SafeFloat(obj.torque[2]) << "], "
+        << "\"gps\": ["
+        << SafeFloat(obj.gps[0]) << ", "
+        << SafeFloat(obj.gps[1]) << ", "
+        << SafeFloat(obj.gps[2]) << ", "
+        << SafeFloat(obj.gps[3]) << "] "
         << "}";
 
     return oss.str();
@@ -748,10 +805,13 @@ void StonefishRL::FillWithNanInfoObject(InfoObject& obj)
     obj.rotation.resize(3, NAN);
     
     obj.linear_velocity.resize(3, NAN); 
+    obj.linear_acceleration.resize(3, NAN);
     obj.angular_velocity.resize(3, NAN); 
     
     obj.force.resize(3, NAN);
     obj.torque.resize(3, NAN);
+
+    obj.gps.resize(4, NAN); // Pos: [0] latitude, [1] longitude, [2] North, [3] East
 }
 
 

@@ -66,7 +66,7 @@ int learning(void* data) {
             contador = 0;
         }
        
-        //std::this_thread::sleep_for(std::chrono::milliseconds(5)); // Si el treiem (comentem aquesta linea) va tremendament ràpid.
+        //std::this_thread::sleep_for(std::chrono::milliseconds(115)); // Si el treiem (comentem aquesta linea) va tremendament ràpid.
                                                                      // Si el posem a 1, va una mica ràpid, però acceptable.
                                                                      // Si el deixem a 10, potser és un xic lent, però veus bé les trajectories que fa.
         //float time1 = simManager->getSimulationTime();
