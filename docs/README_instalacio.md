@@ -2,9 +2,8 @@
 
 ## Requisits Previs
 
-Abans de començar, assegura’t de tenir instal·lats al sistema els següents components:
-- **ZeroMQ**: La biblioteca de comunicació entre C++ i Python (`libzmq3-dev`, `cppzmq`, `pyzmq`).
-- **Stonefish** (v1.5.0 o superior) Simulador instal·lat i funcional. 
+Abans de començar, assegura’t de tenir el simulador **Stonefish** (versió 1.5.0 o superior) instal·lat correctament i que funcioni sense errors.  
+Pots trobar el repositori amb les instruccions d’instal·lació aquí: [Stonefish](https://github.com/patrykcieslak/stonefish)
 
 ---
 
