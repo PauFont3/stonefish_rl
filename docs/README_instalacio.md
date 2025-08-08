@@ -3,8 +3,6 @@
 ## Requisits Previs
 
 Abans de començar, assegura’t de tenir instal·lats al sistema els següents components:
-- **Python 3.10** i el gestor de paquets `pip`
-- **CMake** (Versió 3.10 o superior) i un compilador compatible amb C++17 (p.ex: `g++`).
 - **ZeroMQ**: La biblioteca de comunicació entre C++ i Python (`libzmq3-dev`, `cppzmq`, `pyzmq`).
 - **Stonefish** (v1.5.0 o superior) Simulador instal·lat i funcional. 
 
@@ -26,7 +24,7 @@ sudo apt install python3-pip
 # 3. Instal·lar git (si no està ja instal·lat)
 sudo apt install git
 
-# 4. Instal·lar CMake i el compilador C++
+# 4. Instal·lar CMake (Versió 3.10 o superior) i un compilador compatible amb C++17 (p.ex: g++).
 sudo apt install cmake
 sudo apt install g++
 
@@ -39,11 +37,15 @@ cd cppzmq
 mkdir build
 cd build
 cmake ..
-sudo make install
+sudo make install  # <--- Pot fallar en alguns entrorns (veure Nota)
 
 # 7. (Opcional) Tornar al directori anterior
 cd ../..
 ```
+> ### Nota sobre `cppzmq` i la instal·lació  
+> `cppzmq` és una biblioteca *header-only*, és a dir, només té fitxers amb capçalera (.hpp) i no necessita compilar fitxers binaris.  
+> En alguns sistemes, la comanda `sudo make install` pot fallar perquè intenta compilar i instal·lar també els tests i exemples que hi ha inclosos al repositori.  
+> Si es dona aquest cas, una solució que m'ha funcionat és utilitzar la comanda `sudo cmake --install .`, que només instal·la els headers necessaris (i arxius config) sense compilar res extra, evitant errors i permetent executar la llibreria incloent `#include <zmq.hpp>`.
 
 ---
 
@@ -76,5 +78,5 @@ cd build
 cmake .. 
 make -j$(nproc)
 ```
-> `make -j$(nproc)` Accelera la compilaciódel programa, utilitzarà els nuclis que tingui disponibles la CPU. En cas que no es vulgui utilitzar la compilació paral·lela, sempre es pot utilitzar `make` el qual només utilitza 1 nucli.
+> `make -j$(nproc)` Accelera la compilació del programa, utilitzarà els nuclis que tingui disponibles la CPU. En cas que no es vulgui utilitzar la compilació paral·lela, sempre es pot utilitzar `make` el qual només utilitza 1 nucli.
 
