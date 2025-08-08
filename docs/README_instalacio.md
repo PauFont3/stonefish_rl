@@ -44,7 +44,7 @@ cd ../..
 ```
 > ### Nota sobre `cppzmq` i la instal·lació  
 > `cppzmq` és una biblioteca *header-only*, és a dir, només té fitxers amb capçalera (.hpp) i no necessita compilar fitxers binaris.  
-> En alguns sistemes, la comanda `sudo make install` pot fallar perquè intenta compilar i instal·lar també els tests i exemples que hi ha inclosos al repositori.  
+> En alguns sistemes, la comanda `sudo make install` pot fallar perquè intenta compilar i instal·lar tests i exemples que hi ha inclosos al repositori.  
 > Si es dona aquest cas, una solució que m'ha funcionat és utilitzar la comanda `sudo cmake --install .`, que només instal·la els headers necessaris (i arxius config) sense compilar res extra, evitant errors i permetent executar la llibreria incloent `#include <zmq.hpp>`.
 
 ---
