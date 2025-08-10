@@ -1,26 +1,36 @@
 
-## Afegir un nou sensor (Scalar, no de Visió) a StonefishRL
-1. Incloure la llibreria del sensor (si no existeix)  
-    - A `StonefishRL.cpp` o `.h`, cal afegir el `#include ...` corresponent per cada tipus de sensor.
-    - Per exemple: ` #include <Stonefish/sensors/scalar/IMU.h> `
+# StonefishRL — Add a New Scalar Sensor (not Vision)
+## 1) Include the sensor library (if needed)
+- In `StonefishRL.cpp` or `.h`, add the appropriate header for the sensor type.
+- Example:
+```cpp
+#include <Stonefish/sensors/scalar/IMU.h>
+```
 
-2. Definir el sensor al XML de l'escena  
-    - Afegir el nou sensor a l'escena (`.scn`).
+## 2) Define the sensor in the scene XML
+- Add the new sensor to your scene file (`.scn`).
+  
+## 3) Extend `InfoObject` (StonefishRL.h)
+- Add the new sensor fields to:
+```cpp
+struct InfoObject {
+    // …existing fields
+    // Add your new sensor data here
+};
+```
 
-3. Afegir-lo a `InfoObject` (StonefishRL.h)  
-    - Afegir al struct `struct InfoObject`les noves dades del sensor.
+## 4) Verify Stonefish detects the sensor (StonefishRL.cpp)
+- Use `ProvaMostrarTot()` to print in the terminal whether the sensor appears and which data channels it exposes.
 
-4. Comprovar que Stonefish el detecta (StonefishRL.cpp)
-    - A través del mètode `ProvaMostrarTot()` permet veure per la terminal si el sensor apareix i quins canals d'informació té.
+## 5) Add it to the observation vector
+- In `GetStateScene()`, follow the same pattern used by existing sensors to gather the values you want to export to Python.  
+- **Important:** remember to call `push_back` so the observations are appended as `InfoObject` entries.
 
-5. Afegir-lo al vector d'observacions  
-    - A `GetStateScene()`, ja hi ha varis sensors afegits, caldrà seguir el mateix patró per afegir l'informació que volem recollir i enviar cap al Python.   
-  **Important**: Fer el `push_back` perque s'afegeixin les observacions a la tupla (InfoObject).
+## 6) Send the data to Python
+- In `InfoObjectToJson(...)`, add the fields using `SafeFloat(...)` so unwanted fields become `NaN`.
+- In `FillWithNanInfoObject(...)`, initialise the new sensor fields you plan to collect with `NaN`.
 
-6. Enviar les dades a Python  
-    - Al mètode `InfoObjectToJson(...)` cal afegir les dades utilitxant el mètode 'SafeFloat(...)` per deixar com a `nan` els camps que no interessen.  
-  Al mètode `FillWithNanInfoObject(...)`, cal inicialitzar les dades que volguem recollir del sensor que afeguim amb `nan`. 
+## 7) Confirm Python recieves the values
+- In `EnvStonefishRL.py`, uncomment the line `self.print_full_state()` inside `step(self, message, steps)` to print on screen the values coming from the newly added sensor.
 
-7. Verificar que Pyhton ha rebut els valors  
-    - Descomentar la linea de codi `self.print_full_state()` de la funció `step(self, message, steps)` a `EnvStonefishRL`, permeten així mostrar per pantalla els
-      valors que s'han obtingut del sensor afegit.  
+---
