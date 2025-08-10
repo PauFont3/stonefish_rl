@@ -1,31 +1,30 @@
-# G500Env - Entorn de Reinforcement Learning amb el Robot Girona500
+# G500Env — Reinforcement Learning Environment with the Girona500 Robot
 
-Aquest entorn implementa un escenari d’aprenentatge per reforç (Reinforcement Learning) per controlar el robot `Girona500`i el braç manipualdor `ECA5eMicro` dins d'una piscina virtual utilitzant la biblioteca de **Gymnasium**.
-La piscina virtual té les dimensions de la piscina real del CIRS.
-
----
-
-## Requisits previs
-Abans de començar, assegura’t de tenir instal·lats els següents components:
-- **Stonefish Simulator (v1.5.0 o superior)**: Has de tenir Stonefish instal·lat i funcional.
-- **Python 3.10** i `pip`
-- **Entorn virtual** amb les dependències del projecte (requirements.txt)
-- **CMake** i un compilador C++17
-- **ZeroMQ** i bindings per a C++ i Python (`pyzmq`, `cppzmq`)
-- **Stable-Baselines3** (entrenament)
+This environment implements a Reinforcement Learning scenario to control the `Girona500` robot and the `ECA5eMicro` manipulator arm inside a virtual pool using **Gymnasium**.  
+The virtual pool matches the dimensions of the real CIRS pool.
 
 ---
 
-## Executar l'entorn
-Els scripts de Python executen automàticament el simulador de Stonefish amb l’escena adequada. Només cal executar el script que vulguem amb l’entorn Python activat:
+## Prerequisites
+Before you start, make sure you have the following installed:
+- **Stonefish Simulator (v1.5.0 or higher)** — installed and working
+- **Python 3.10** and `pip`
+- **Virtual environment** with the project dependencies (`requirements.txt`)
+- **CMake** and a **C++17** compiler
+- **ZeroMQ** with bindings for C++ and Python (`pyzmq`, `cppzmq`)
+- **Stable-Baselines3** (for training)
+
+---
 
 
-**A. Entrenar un Nou Agent**
-Entrena un agent PPO per controlar el Girona500 utilitzant Stable-Baselines3. El millor model es guardarà a `logs/best_model.zip`.
-```bash 
+## Run the environment
+The Python scripts automatically launch the Stonefish simulator with the appropriate scene. Just run the script you want with your Python environment activated.
+
+**A. Train a New Agent**  
+Train a PPO agent to control the Girona500 using Stable-Baselines3. The best model will be saved to `logs/best_model.zip`.
+```bash
 python scripts/g500/G500_training_ppo.py
-``` 
-
+```
 
 **B. Avaluar un Agent Entrenat**
 Carrega el model logs/best_model.zip i mostra el seu rendiment. Si el gripper s’aconsegueix acostar a **<= 0.5m** de la bola, l’episodi es considerarà assolit i `terminated = True`.
@@ -33,46 +32,47 @@ Carrega el model logs/best_model.zip i mostra el seu rendiment. Si el gripper s�
 python scripts/g500/evaluate_g500.py
 ```
 
-
-**C. Fer Proves Manuals (DEBUG)**
-Per provar l’entron sense model, envia accions aleatòries al robot `girona500`.
-```bash 
+**C. Manual Tests (DEBUG)**  
+Test the environment without a model by sending random actions to the `girona500` robot.
+```bash
 python scripts/g500/test_G500.py
 ```
 
 ---
 
-## Funcionament intern de l'entorn
-1. Python (G500Env.py) crea una connexió utilitzant ZeroMQ cap al servidor C++ (StonefishRLTest).
-2. En fer env.step(action), Python envia comandes amb les velocitats concretes per a cada thruster i/o servo.
-3. C++ aplica les comandes, avança la simulació i retorna un JSON amb les observacions.
-4. Python interpreta aquest JSON, calcula la recompensa (reward) i detecta si s'ha acabat l'episodi (terminated o truncated).
+## How it works internally
+1. Python (`G500Env.py`) creates a ZeroMQ connection to the C++ server (`StonefishRLTest`).
+2. When `env.step(action)` is called, Python sends commands with the specific velocities for each thruster and/or servo.
+3. C++ applies the commands, advances the simulation, and returns a JSON payload with observations.
+4. Python parses this JSON, computes the reward, and determines whether the episode should end (`terminated` or `truncated`).
 
-## Observacions i accions
-> El número entre parèntesis indica la longitud del vector corresponent.
 
-Una observació (obs) és un vector de 38 valors reals:
-- Posició de la bola (3)
-- Posició i rotació del Girona500 (6)
-- Velocitat lineal i angular del Girona500 (6)
-- Posició i rotació del gripper (6)
-- Angles de les joints (6)
-- Última acció aplicada (11)
 
-Les accions son un vector de 11 valors reals:
-- 5 Thrusters (TORQUE): rang [-10.0, 10.0]
-- 6 Servos (VELOCITY): rang [-1.0, 1.0]
+## Observations and actions
+> The number in between parentheses indicates the length of the corresponding vector.
 
-## Política per acabar un episodi
-- terminated = True: si el gripper està **<=0.5 metres** de la bola
-- truncated = True: si passen 30 segons (definits per search_time) i no ho ha aconseguit
+An observation (`obs`) is a vector of **38** real values:
+- Ball position (3)
+- Girona500 position and rotation (6)
+- Girona500 linear and angular velocity (6)
+- Gripper position and rotation (6)
+- Joint angles (6)
+- Last action applied (11)
+
+Actions are a vector of **11** real values:
+- 5 thrusters (TORQUE): range `[-10.0, 10.0]`
+- 6 servos (VELOCITY): range `[-1.0, 1.0]`
+
+## Episode termination policy
+- `terminated = True`: if the gripper is **≤ 0.5 metres** from the ball.
+- `truncated = True`: if **30 seconds** pass (defined by `search_time`) without achieving the goal.
 
 ## Reward
-```bash
-La funció de recompensa és:
+```python
+# Reward function:
 if dist > 0.5:
     reward = -dist
 else:
     reward = 0
 ```
-Per tant, com més a prop estigui el gripper de la bola, més gran serà el reward.
+Therefore, the closer the gripper is to the ball, the higher (less negative / zero) the reward.
