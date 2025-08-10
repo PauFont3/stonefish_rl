@@ -1,50 +1,57 @@
-# AcrobotEnv – Entorn de Reinforcement Learning amb Stonefish
+# AcrobotEnv — Reinforcement Learning Environment with Stonefish
 
-Aquest entorn implementa un escenari d’aprenentatge per reforç (Reinforcement Learning) per controlar un robot `Acrobot` utilitzant la biblioteca **Gymnasium**. 
+This environment implements a Reinforcement Learning scenario to control an `Acrobot` robot using the **Gymnasium** library.  
 
-La simulació física es fa amb **Stonefish** (C++) i la comunicació entre Python i el simulador es gestiona a través de **ZeroMQ**.
-L’objectiu de l’agent és aprendre a balancejar l’Acrobot perquè l’extrem del seu segon braç superi una altura determinada, partint des d’una posició inicial en repòs. 
+The physics simulation is handled by **Stonefish** (C++), and communication between Python and the simulator is managed by **ZeroMQ**.  
+The agent’s objective is to learn how to swing the Acrobot so that the tip of its second arm surpasses a given height, starting from an initial rest position.
 
 ---
 
-### 1. Executar l’Entorn 
+### 1. Run the Environment
 
-Els scripts de Python ja executen automàticament el simulador de Stonefish amb l’escena corresponent, per tant **només cal tenir l’entorn Python activat** i executar el script que es vulgui.
+The Python scripts already launch the Stonefish simulator with the corresponding scene automatically, so you only need to **activate the Python environment** and run the desired script.
 
-**Activar l'entorn virtual**  
-Desde l’arrel del projecte
+**Activate the virtual environment**  
+From the project root:
 ```bash
 source env_rl/bin/activate
 ```
 
-**A. Entrenar un Nou Agent**  
-Per entrenar un agent des de zero utilitzant Stable-Baselines3 (PPO): 
-```bash 
+**A. Train a New Agent**  
+To train an agent from scratch using Stable-Baselines3 (PPO):
+```bash
 python scripts/acrobot/acro_training.py
-``` 
+```
 
-**B. Avaluar un Agent Entrenat**  
-Per veure com es comporta un agent ja entrenat (assegurat que el fitxer del model existeix): 
-```bash 
+**B. Evaluate a Trained Agent**  
+To see how a trained agent behaves (make sure the model file exists):
+```bash
 python scripts/acrobot/evaluate_acro.py
-``` 
+```
 
-**C. Fer Proves Manuals (DEBUG)**  
-Per provar l’entron sense model, enviant accions aleatòries: 
-```bash 
+**C. Manual Tests (DEBUG)**  
+To test the environment without a model, sending random actions:
+```bash
 python scripts/acrobot/test_acrobot.py
 ```
 
-#### Notes Importants
-- Quan es crida a la funció de `reset()` pot ser que l’Acrobot segueixi balancejant-se durant un temps. Això és normal i és deu la una velocitat residual del robot: el sistema intenta que el robot es quedi quiet aplicant forces en sentit contrari al moviment que porta fins aconseguir una posicó equilibrada.
+#### Important Notes
+- When `reset()` is called, the Acrobot may keep swinging for a while. This is normal and is caused by the residual velocity: the system tries to bring the robot to rest by applying opposite forces to the current motion until it reaches a balanced position.
 
 ---
 
-## Com Funciona 
-1. El **servidor C++ (`StonefishRLTest`)** carrega l’escena (`.xml`) i espera una connexió entrant pel port 5555.
-2. El **client Python (`EnvStonefishRL.py`)** crea la connexió i la connecta al servidor a través de ZeroMQ.
-3. Al cridar a `env.step(...)`, Python envia una comanda al simulador C++, p.ex:`CMD:TORQUE...`.
-4. El simulador aplica el torque, avança la simulació uns quants passos (`dt`), i obté les noves lectures dels sensors.
-5. Aquestes lectures es serialitzen en format JSON i s'envien de tornada a Python.
-6. Python processa aquest JSON, actualitza el seu estat intern, calcula la recompensa i comprova si s'han satisfet les condicions de fi de l’episodi (`terminated` i `truncated`).
-7. El mètode `reset(...)` envia una comanda especial `"RESET"` que activa la funció `robot->Reset()` en C++ per restaurar l’estat inicial del robot.
+
+## How It Works
+1. The **C++ server (`StonefishRLTest`)** loads the scene (`.xml`) and waits for a connection on port 5555.
+
+2. The **Python client (`EnvStonefishRL.py`)** creates the connection and links it to the server using ZeroMQ.
+
+3. When `env.step(...)` is called, Python sends a command to the C++ simulator, e.g. `CMD:TORQUE...`.
+
+4. The simulator applies the torque, advances the simulation for several steps (`dt`), and reads the sensors data.
+
+5. These sensor data is serialised to JSON and sent back to Python.
+
+7. Python processes the JSON, updates its internal state, computes the reward, and checks whether the episode should end (`terminated` or `truncated`).
+
+8. The `reset(...)` method sends a special `"RESET"` command that triggers the function `robot->Reset()` in C++ to restore the robot’s initial state.
