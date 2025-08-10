@@ -1,34 +1,34 @@
-## G500TestEnv - Entorn de Test amb Girona500
+# G500TestEnv — Test Environment with Girona500
 
-Aquest entorn (`G500TestEnv`) està pensat per fer proves amb el robot Girona500 dins d'una piscina virtual a Stonefish, però no te cap objectiu d'aprenentatge en concret.
-És útil per comprovar que els actuadors, sensors i/o robots funcionen correctament, que es poden enviar comandes i rebre observacions, i que es poden fer passos a l'entorn.
+This environment (`G500TestEnv`) is intended for testing the Girona500 robot inside a virtual pool in Stonefish and **has no specific learning objective**.  
+It is useful to verify that actuators, sensors and robots work correctly, that commands can be sent and observations received, and that steps can be performed in the environment.
 
 ---
 
-## Executar l'entorn:
-Assegura’t de tenir l’entorn virtual activat:
+## Run the environment
+Make sure your virtual environment is activated:
 ```bash
 source env_rl/bin/activate
 ```
 
-**Executar el test:**
+**Run the test:**
 ```bash
 python scripts/tests_sensors_actuadors/test.py
 ```
-Això fara:
-1. Executa automàticament el simulador de Stonefish amb l'escena de tests (g500_basic.scn).
-> L'escena `(g500_basic.scn)` té el mateix nom que l'escena de l'entorn del girona500 amb RL perque vaig reaprofitar tota l'escena del girona500 que ja estava creada, per modificar i afegir els sensors i actuadors que estava provant en una escena ja funcional.
 
-2. Es crida l'entorn G500TestEnv.
-3. Fa un `reset()` que col·loca el robot (`girona500`) i l'objecte "Ball" a unes posicions inicials aleatories.
-4. Entra en un bucle on s'envien continuamentaccions aleatòries i es fa un `step()` continuament.
+This will:
+1. Automatically launch the Stonefish simulator with the test scene (`g500_basic.scn`).  
+   > The scene `g500_basic.scn` uses the same name as the RL Girona500 scene because the original Girona500 scene was reused and adapted to add and test sensors/actuators on an already working setup.
+2. Instantiate the `G500TestEnv` environment.
+3. Call `reset()` to place the `girona500` robot and the `"Ball"` object at random initial positions and rotations.
+4. Enter a loop that continuously sends random actions and calls `step()`.
 
 ---
 
-## Ús de l'entorn:
+## Environment usage
 
-Aquest entorn està pensat per:
-- Comprovar que sensors i actuadors funcionen bé després de modificar l'escena o el el codi.
-- Ajustar rangs d'accions o observacions.
-- Comprovar si el simulador respon correctament als nous elements afegits.
-- Comprovar si la posició i moviments del robot son coherents.
+This environment is meant to:
+- Verify that sensors and actuators work correctly after modifying the scene or the code.
+- Adjust action and observation ranges.
+- Check whether the simulator responds correctly to new added elements.
+- Verify that the robot’s position and movements are coherent.
