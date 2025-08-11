@@ -103,7 +103,7 @@ std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
 void StonefishRL::SendObservations()
 {
     StateScene scalar_observations = GetStateScene();
-    ProvaMostrarTot();
+    //ProvaMostrarTot();
     // Convertir les observacions a string
     std::string obs_str_json = SerializeScene(scalar_observations.observations);
     

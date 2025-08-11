@@ -7,7 +7,7 @@ from g500.G500Env import G500Env
 from core.launch_stonefish import launch_stonefish_simulator
 
 
-launch_stonefish_simulator("Resources/udg_cirs-iauv_simulation/scenarios/girona500_basic.scn")
+launch_stonefish_simulator("Resources/g500/scenarios/girona500_basic.scn")
  
 
 env = G500Env()

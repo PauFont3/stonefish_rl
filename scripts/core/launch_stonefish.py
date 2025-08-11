@@ -9,7 +9,6 @@ def kill_existing_stonefish_processes():
         pids = output.strip().split("\n")
         for pid in pids:
             # Per cada PID trobat, mostra un missatge i mata el proces
-            #print(f"[INFO] Killing old process from StonefishRLTest with PID {pid}")
             subprocess.run(["kill", "-9", pid])
         # Esperar per si no ha acabat d'eliminar tot els rescursos
         time.sleep(1.0) 
@@ -33,7 +32,10 @@ def launch_stonefish_simulator(scene_relative_path):
 
     # Ruta completa a la escena
     scene_path = os.path.join(project_root, scene_relative_path)
-
-    # Lanza el ejecutable con la escena
+    resources_path = "/" + os.path.join(project_root, "Resources")
+    os.environ["RESOURCES_DIR"] = resources_path
+    print(f"[INFO] RESOURCES_DIR set to: {resources_path}")
+    
+    # Executa l'escena
     print(f"[INFO] Executing Stonefish with the scene: {scene_path}")
     stonefish_proc = subprocess.Popen([stonefish_exe, scene_path])
