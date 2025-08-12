@@ -246,4 +246,94 @@ You can find an example in the `G500Env.py` with the functions `build_reset_comm
 - Temporally enable the method `PrintAll()` to confirm the robot. actuators and sensors are listed.
 
 ## 5) Reset pose form Python (Optional)  
-You can reposition the robot with a `RESET:` command.
+You can repositionate the robot with a `RESET:` command.
+
+---
+
+---
+
+# StonefishRL - Create a new RL ENvironment from scratch
+
+Inspirated on the G500Env.
+
+## 1) Create the scene file 
+- Design the Stonefish scene that will contian the new robot and any other object with whom will interactuate with.
+
+## 2) Create the Environment Pyhton class
+- Inside the `scripts` directory, create the new directory for your environement (e.g. `scripts/my_new_environment`).
+
+- Inside, create a Python file (e.g. `MyNewEnv.py`).
+
+- Define a new classe that inherits from `EnvStonefishRL.py`.
+
+  ```python
+  from core.EnvStonefishRL import EnvStonefishRL
+  from gymnasium import spaces
+  import numpy as np
+  
+  class MyNewEnv(EnvStonefishRL):
+    def __init__(self, ...):
+      super().__init__(...)
+      ...
+  
+  ```
+
+## 3) Implement the Gymnasium methods
+- Define the action space. For example:
+  ```python
+    # 2 actuators with values from -1 to 1
+    self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(n,), dtype=np.float32)
+  ```
+
+- Define the observation space. Which data is gone see the agent.
+
+- Define a method `get_observations(self)` which can read the `self.state` dictionary (contains all the data recieved from C++) and create the observations vector.
+
+- Define a method `step(self, action)`:
+  - **Translate the action**: Convert the agents `action` in a command for the simulator. (e.g. `create_command()` and `build_command()`.
+  - **Execute the command**: Call `self.send_command(...)` from `EnvStonefishRL.py`.
+  - **Calculate the reward**: Define a method that rewards or punish the agent for it's behavior.
+
+- Define a method `reset(self, ...)` to 
+# StonefishRL - Create a new RL ENvironment from scratch
+
+Inspirated on the G500Env.
+
+## 1) Create the scene file 
+- Design the Stonefish scene that will contian the new robot and any other object with whom will interactuate with.
+
+## 2) Create the Environment Pyhton class
+- Inside the `scripts` directory, create the new directory for your environement (e.g. `scripts/my_new_environment`).
+
+- Inside it, create `MyNewEnv.py` and define a class that inherits from `EnvStonefishRL`.
+
+  ```python
+  # scripts/my_new_env/MyNewEnv.py
+  from core.EnvStonefishRL import EnvStonefishRL
+  from gymnasium import spaces
+  import numpy as np
+  
+  class MyNewEnv(EnvStonefishRL):
+    def __init__(self, ...):
+      super().__init__(...)
+      ...
+  
+  ```
+
+## 3) Implement the Gymnasium methods
+- Define the action space. For example:
+  ```python
+    # 2 actuators with values from -1 to 1
+    self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(n,), dtype=np.float32)
+  ```
+
+- Define the observation space. Which data is gone see the agent.
+
+- Define a method `get_observations(self)` which can read the `self.state` dictionary (contains all the data recieved from C++) and create the observations vector.
+
+- Define a method `step(self, action)`:
+  - **Translate the action**: Convert the agents `action` in a command for the simulator. (e.g. `create_command()` and `build_command()`.
+  - **Execute the command**: Call `self.send_command(...)` from `EnvStonefishRL.py`.
+  - **Calculate the reward**: Define a method that rewards or punish the agent for it's behavior.
+
+- Define a method `reset(self, ...)` to 
