@@ -65,8 +65,8 @@ struct InfoObject {
 ## 4) Enable control of the new actuator in C++ 
 - In `StonefishRL.cpp` in the function `ApplyCommands(...)`, there is a `switch` that handles different actuator types.  
 - Define how to apply commands to the actuator. Choose the control modes (e.g. `VELOCITY`, `TORQUE`, `POSITION`, or any other new custom keyword).  
-- If the actuator it's not already covered add a new `case`.
-> Here's a template:
+- If the actuator it's not already covered add a new `case`.  
+Here's a template:
 ```cpp
 // CUSTOM
 case sf::ActuatorType::CUSTOM:
@@ -128,3 +128,93 @@ else if(actuator_ptr->getType() == sf::ActuatorType::MY_ACTUATOR) {
   - Define the range of valid values for that actuator (only if needed).
   - Also consider if the observation space needs to be expanded.
 
+---
+
+---
+
+# StonefishRL — Create Commands to Control Actuators
+
+Commands are messages sent from the Python environment to the Stonefish simulator (C++) to control actuators, reset the scene, or terminate the simulation.
+
+## 1 Command message format (Pyhton to C++)
+
+```
+CMD:ActuatorName:ACTION_KEY:VALUE;OBS:
+```
+- `CMD:` - Indicates the beginning of a command (this tells the simulator we are sending actuator control commands).
+- `ActuatorName:` - The name of the actuator as defined in the Stonefish scene (including any prefix like the robot name, e.g. `girona500/Servo1`).
+- `ACTION_KEY:` - The keyword for the type of action or control mode (e.g. `POSITION`, `VELOCITY`, `TORQUE`, ...).
+- `VALUE;` - Number representing the command value.
+> `;` – Acts as a separator between multiple commands. You can send several actuator commands in one message by separating them with `;`.
+- `OBS:` - Indicates the end of the command and the start of the observations (even if no specific observation requests are made, the format expects this `OBS:`).  
+
+Example:
+```
+CMD:Acrobot/Servo2:TORQUE:1.5;OBS:
+
+# You could also send multiple commands at once.
+CMD:MyRobot/Thruster1:VELOCITY:0.8;MyRobot/Servo1:TORQUE:10;OBS:
+```
+
+## 2) Building command string in Python
+
+You don't have to build these strings manually. In the Gym environment class, after defining the method `create_command()` (returns a dictionary of commands), the base class `EnvStonefishRL` has a method `build_command(command_dict)` to construct the string. 
+
+- The create_command method:
+  - **Keys** are actuator names (matching those in the simulator).
+  - **Values** are dictionaries mapping an action keyword to it's value.
+  For example:
+  ```python
+  {
+    "MyRobot/Thruster1": {"VELOCITY": 0.8},  
+    "MyRobot/Servo1": {"TORQUE": 10.0}  
+  }
+  ```
+  
+- The base method `build_command` will iterate through this and produce:
+```
+CMD:MyRobot/Thruster1:VELOCITY:0.8;MyRobot/Servo1:TORQUE:10.0;OBS:  
+```
+
+- To **add a new command type**: : ensure you use a unique keyword in the dictionary (as the `ACTION_KEY`). Then confirm the C++ `ApplyCommands` function knows how to handle that keyword for the given actuator. If it’s an existing actuator but new mode, you may need to extend the C++ handling for that actuator to interpret the new key.
+
+## 3) Special commands: RESET and EXIT
+
+In addition to the `CMD:`, there two other commands:
+- `RESET:` - This command resets the environment with new specified positions/orientations for robots.
+
+```
+RESET:[{"name":"MyRobot1","position":[0,0,0.5],"rotation":[0,0,0]},
+       {"name":"MyRobot2","position":[-2,1.3,5.0],"rotation":[0,0,0]}]
+```
+
+You can find an example in the `G500Env.py` with the functions `build_reset_command()` and `reset(...)`
+
+- `EXIT` - This command tells the simulator to end. The base environment’s method `close()` sends all the necesary to shut it down.  
+
+> [!NOTE]  
+> These three commands are handled in C++ by the `ReceiveInstructions()` function. Which checks the prefix of the command:  
+> - If it starts with `"CMD:"`, the simulator will parse it as one or multiple actuator commands.  
+> - If it starts with `"RESET:"`, the simulator will parse the JSON message and reset the scenario accordingly.  
+> - If its `"EXIT"`, the simulator breaks out of its loop and closes (no observation response expected).  
+
+
+## 4) How the simulator processes commands (JUST INFO)
+
+- The Python sends a command (via `socket.send_string` in ZMQ) and the C++ recieves it. 
+
+- The method `ReceiveInstructions()` in C++ will distinguish the type of command.
+
+- For a `CMD` command: it will call the method `ParseCommandsAndObservations(...)` to decodify the string into individual actuator commands.
+  
+- The results are stored in a map (`commands_`) where each actuator name maps to a pair of (action_key, value).
+
+- After parsing, the simulator applies each command.
+  - For each actuator name it finds the corresponding actuator (checking the name in `actutors_` map built in the scenario loading time).
+  - Then it checks the action key and applies the method on the actuator. (This is where your new code from step 3 for the new actuator would run, if the name and key match).
+
+- After applying all commands, the simulator advances the physics for a fixed number of steps (the number of steps is determined by the Python side).
+  
+- Collects all the sensor and actuaor readings into a new observation whcih is a string. This observation string is sent back to the Python side.
+  
+- Finally, the Python environment receives the observation string (via `socket.recv_string()` in the method `send_command`) and processes it (using `_process_and_update_state` to update the `env.state` dictionary).
