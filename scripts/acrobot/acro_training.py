@@ -12,16 +12,16 @@ launch_stonefish_simulator("Resources/acrobot/acrobot_scene.xml")
 
 env = AcrobotEnv()
 
-# Crea el model PPO
+# Create the PPO model
 model = PPO("MlpPolicy", env, verbose=1)
 
-# Entrenar el model
+# Train the model
 model.learn(total_timesteps=50000)
 
-# Guardar el model
+# Save the model
 model.save("ppo_acrobot_stonefish_50000_5_4__7_0")
 
-# Executar l'entorn amb el model
+# Run the environment with the model
 obs, _ = env.reset()
 
 terminated = False

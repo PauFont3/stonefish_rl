@@ -11,10 +11,10 @@ launch_stonefish_simulator("Resources/acrobot/acrobot_scene.xml")
 
 env = AcrobotEnv()
 
-# Carregar el model entrenat
+# Load the trained model
 model = PPO.load("ppo_acrobot_stonefish_50000_5_4__7_0",env=env)
 
-# Evaluar durant N episodis
+# Evaluate for N episodes
 n_episodes = 5
 
 for episode in range(n_episodes):
