@@ -21,14 +21,12 @@
 class StonefishRL : public sf::SimulationManager {
 public:
 
-// IMPORTANT: Sempre que s'afegueixi un nou struct i/o paràmetre per enviar cap 
-// al Python, perque per exemle hi ha un sensor nou i volem enviar els nous valors
-// que recull que aquest sensor, els parametres o structs que s'afegeixin, també s'hauran
-// d'afegir a les funcions: 'InfoObjectToJson', 'FillWithNanInfoObject' i 'GetStateScene'
-// pq son les que envien les dades cap al python.
-
+// IMPORTANT: Whenever a new struct and/or parameter is added to send to Python
+// (e.g. a new sensor whose readings you want to include), you must also update
+// the functions 'InfoObjectToJson', 'FillWithNanInfoObject', and 'GetStateScene',
+// because those are responsible for sending data to Python.
     
-    // Conté tota l'informació d'un objecte de l'escena
+    // Contains all information for one scene object
     struct InfoObject 
     {
         std::string name;
@@ -46,10 +44,10 @@ public:
         std::vector<float> force; 
         std::vector<float> torque; 
 
-        std::vector<float> gps; // Pos: [0] latitude, [1] longitude, [2] North, [3] East
+        std::vector<float> gps; // Indices: [0] latitude, [1] longitude, [2] North, [3] East
     };
 
-    // Conté tots els obejctes de l'escena
+    // Holds all objects in the scene
     struct StateScene
     {
         std::vector<InfoObject> observations;
@@ -58,7 +56,7 @@ public:
     // Constructor
     StonefishRL(const std::string& path, double frequency);
 
-    // Metodes per la interface de RL
+    // Methods for the RL interface
     std::string RecieveInstructions(sf::SimulationApp& simApp);
     
     void SendObservations();
@@ -79,20 +77,18 @@ public:
 
     bool ObjImportantForObs(const std::string& objName) const;
 
-    void MostrarValors();
-
     void FillWithNanInfoObject(InfoObject& pose);
 
-    void ProvaMostrarTot();
+    void PrintAll();
 
-    // Converteix a JSON per enviar al Python
+    // Convert to JSON to send to Python
     std::string InfoObjectToJson(const InfoObject& pose); 
     std::string EscapeJson(const std::string& s);
     std::string SerializeScene(const std::vector<InfoObject>& poses);
     std::string SafeFloat(float val);
 
 protected:
-    // Override del mètode de BuildScenario de sf::SimulationManager
+    // Override of the method 'sf::SimulationManager::BuildScenario'
     void BuildScenario() override;
 
 private:
@@ -101,33 +97,11 @@ private:
 
     std::string scenePath;
 
-    //Guardar punters i actuadors pel seu nom
-    std::unordered_map<std::string, sf::Sensor*> sensors_;      // Agafa tots els actuadors que hi ha a l'escena, perque es crida al BuildScenario.
-    std::unordered_map<std::string, sf::Actuator*> actuators_; // Agafa tots els actuadors que hi ha a l'escena, perque es crida al BuildScenario.
-    std::unordered_map<std::string, sf::Robot*> robots_;      // Agafa tots els robots que hi ha a l'escena, perque es crida al BuildScenario.
-    
-    std::unordered_set<std::string> relevant_obs_names_; // Segurament no caldra, pq agafem totes les observacions, no només les que ens han indicat.
+    std::unordered_set<std::string> relevant_obs_names_;
 
-    std::map<std::string, std::map<std::string, float>> commands_; // Valors que s'aplicaran als actuadors.
-    StateScene current_state_; // Representa l'ultim estat observat de l'entorn
+    std::map<std::string, std::map<std::string, float>> commands_; // Values to apply to actuators
+    StateScene current_state_; // Represents the latest observed state of the environment
     
-    zmq::context_t context; // Context per ZeroMQ
-    zmq::socket_t socket; // Socket per ZeroMQ
+    zmq::context_t context; // ZeroMQ context
+    zmq::socket_t socket;   // ZeroMQ socket
 };
-
-
-/* 
-ACCIONS QUE ES PODEN APLICAR:
-    
-    - SERVO:
-        - VELOCITY i TORQUE (els dos aplicaran velocitat)
-        - POSITION 
-    
-    - THRUSTER:
-        - TORQUE (Dona una velocitat de rotació a les helices del thrusters)
-*/
-
-/*
-El sensor de OdoGripper per saber la posició del braç (pinça del girona500)
-i si s'està acostant gaire al objecte, està acoplat al link "ECAEndEffector"
-*/
