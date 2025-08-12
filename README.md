@@ -1,54 +1,75 @@
-# Entorns d’Aprenentatge per Reforç amb Stonefish
+# Reinforcement Learning Environments with Stonefish
 
-Aquest repositori conté diversos entorns de simulació basats en **Stonefish** i controlats a través **Python + Reinforcement Learning**.
+This repository contains several simulation environments based on **Stonefish** and controlled via **Python**.
 
-## Entorns disponibles
-
-- [AcrobotEnv](./docs/README_acrobot.md) – Control d’un pèndol amb 2 articulacions per superar una altura determinada
-- [G500Env](./docs/README_g500.md) – Robot Girona500 amb un braç per apropar-se a un objecte (Ball)
-- [G500TestEnv](./docs/README_g500test.md) – Entorn de test per sensors i actuadors
+## Available Environments
+- [AcrobotEnv](./docs/README_acrobot.md) – Control of a two-link pendulum to reach a target height.
+- [G500Env](./docs/README_girona500.md) – Girona500 robot with a gripper to approach a target object (Ball)
+- [G500TestEnv](./docs/README_tests.md) – Test environment for sensors and actuators
+- [Installation](./docs/README_installation.md) – Setup Stonefish, build the C++ server, create the Python env, and run scenes.
+- [Manual](./docs/README_manual.md) – Developer guide: commands (CMD/RESET/EXIT), adding sensors/actuators, creating robots, env structure and possible troubles.
 
 ## Tecnologies utilitzades
-- **Simulador**: [Stonefish](https://github.com/patrykcieslak/stonefish)
+- **Simulator**: [Stonefish](https://github.com/patrykcieslak/stonefish)
 - **Reinforcement Learning**: Gymnasium + stable-baselines3
-- **Comunicació**: ZeroMQ (pyzmq + cppzmq)
+- **Comunication**: ZeroMQ (pyzmq + cppzmq)
 
-## Estructura del projecte
+## Project Structure   
 
-```bash
+```
 stonefish_rl/
-├── include/                         # Headers de C++
+├── include/                         # C++ headers
 │   └── StonefishRL.h
-├── logs/                            # Models PPO i arxius d’avaluació de l'entrenament
+├── logs/                            # PPO models and training evaluation files
 │   ├── best_model.zip
 │   └── evaluations.npz
-├── requirements.txt                 # Dependències Python
-├── Resources/                       # Escenes, models i textures per Stonefish
+├── requirements.txt                 # Python dependencies
+├── Resources/                       # Scenes, models and textures for Stonefish 
 │   ├── acrobot/
 │   │   └── acrobot_scene.xml
-│   ├── learning/
 │   ├── minimal/
+│   │   └── minimal_scene.xml
 │   ├── tests_sensors_actuators/
-│   └── udg_cirs-iauv_simulation/
-├── scripts/                         # Codi Python per cada entorn
+|   |   ├── data/
+|   |   |    └── ...
+|   |   └── scenarios/
+|   |        ├── girona500_basic.scn
+|   |        └── vehicles/
+|   |             └── girona500_eca5emicro_gripper.scn  
+│   └── g500/
+|       ├── data/
+|       |    └── ...
+|       └── scenarios/
+|            ├── girona500_basic.scn
+|            └── vehicles/
+|                 ├── girona500.scn
+|                 └── girona500_eca5emicro_gripper.scn  
+├── scripts/                         # Python code for each environment
 │   ├── acrobot/
 │   │   ├── AcrobotEnv.py
 │   │   ├── acro_training.py
-│   │   └── ...
+│   │   ├── __init__.py
+│   │   ├── evaluate_acro.py
+│   │   └── test_acrobot.py
 │   ├── g500/
 │   │   ├── G500Env.py
 │   │   ├── G500_training_ppo.py
-│   │   └── ...
+│   │   ├── __init__.py
+│   │   ├── evaluate_g500.py
+│   │   └── test_g500.py
 │   ├── core/
 │   │   ├── EnvStonefishRL.py
 │   │   └── launch_stonefish.py
 │   └── tests_sensors_actuators/
 │       ├── G500TestEnv.py
 │       └── test.py
-├── src/                             # Codi font en C++
+├── src/                             # C++ source code
 │   ├── main.cpp
 │   └── StonefishRL.cpp
-└── docs/                            # Documentació per cada entorn
+└── docs/                            # Documentation for each environment
     ├── README_acrobot.md
-    ├── README_g500.md
-    └── README_g500test.md
+    ├── README_girona500.md
+    ├── README_tests.md
+    ├── README_installation.md
+    └── README_manual.md
+    
