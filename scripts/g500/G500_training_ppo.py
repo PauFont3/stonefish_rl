@@ -9,16 +9,17 @@ from stable_baselines3.common.callbacks import EvalCallback
 
 from core.launch_stonefish import launch_stonefish_simulator
 
-launch_stonefish_simulator("Resources/udg_cirs-iauv_simulation/scenarios/girona500_basic.scn")
+launch_stonefish_simulator("Resources/g500/scenarios/girona500_basic.scn")
 
-# Crear l'entorno d'entrenament
+# Create the training environment
 env = G500Env()
 
-# Crear la carpeta 'logs' si no existeix ja
+
+# Create the 'logs' folder if it doesn't already exist
 log_dir = "./logs/"
 os.makedirs(log_dir, exist_ok=True)
 
-# Callback per evaluar i guardar el millor model
+# Callback to evaluate and save the best model
 eval_callback = EvalCallback(
     env,
     best_model_save_path=log_dir,
@@ -28,11 +29,11 @@ eval_callback = EvalCallback(
     render=False
 )
 
-# Crear el model PPO
+# Create the PPO model
 model = PPO("MlpPolicy", env, verbose=1)
 
-# Entrenar el model
+# Train the model
 model.learn(total_timesteps=1_350_000, callback=eval_callback)
 
-# Guardar el model 
+# Save the model
 model.save("ppo_g500_final")

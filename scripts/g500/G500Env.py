@@ -11,35 +11,38 @@ class G500Env(EnvStonefishRL):
 
         self.step_counter = 0
         
-        self.ok_dist_gripper_object = 0.5 # Distancia acceptable entre objecte i gripper
-        self.search_time = search_time # Temps que volem que el robot estigui explorant
+        self.ok_dist_gripper_object = 0.5 # Acceptable distance between the object and the gripper
+        self.search_time = search_time # Time the robot is allowed to search
 
-        self.sim_stonefishRL = 0.001 # Delta Time de Stonefish.
-        self.dt = 0.2 # Delta Time de l'entorn que aplica el Reinforcement Learning.
+        self.sim_stonefishRL = 0.001 # StonefishRL delta time.
+        self.dt = 0.2 # Environment delta time used by Reinforcement Learning.
 
-        # Per les observations
+
+        # For the observations
         ball_position = robot_position = robot_rotation = 3
         joints = 6  # 4 servos + 2 finger servos
         robot_linear_vel = robot_angular_vel = 3
         pos_gripper = rot_gripper = 3
         n_total_obs = ball_position + robot_position + robot_rotation + joints + robot_linear_vel + robot_angular_vel + pos_gripper + rot_gripper 
         
-        # Per les actions
+
+        # For the actions
         n_thrusters = 5
         n_servos = 6 # 4 servos + 2 finger servos
         n_total_actions = n_thrusters + n_servos
 
-        # Limits pels thrusters
+        # Thruster limits
         thruster_low = np.full((n_thrusters,), -10.0, dtype=np.float32)
         thruster_high = np.full((n_thrusters,), 10.0, dtype=np.float32)
 
-        # Limits pels servos
+        # Servo limits
         servo_low = np.full((n_servos,), -1.0, dtype=np.float32)
         servo_high = np.full((n_servos,), 1.0, dtype=np.float32)   
 
         low = np.concatenate([thruster_low, servo_low])
         high = np.concatenate([thruster_high, servo_high])      
 
+        # Observation includes the last action, (n_total_obs + n_total_actions)
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(n_total_obs + n_total_actions,), dtype=np.float32)
         self.action_space = spaces.Box(low=low, high=high, shape=(n_total_actions,), dtype=np.float32)
 
@@ -47,23 +50,28 @@ class G500Env(EnvStonefishRL):
 
 
     def normalize_angle(self, angle):
+        """
+        Normalize angle to [-pi, pi].
+        """
         return (angle + np.pi) % (2 * np.pi) - np.pi
 
 
     def build_reset_command(self):
-
+        """
+        Build a random RESET command for Ball and girona500.
+        """
         ball_pos = [
-            self.np_random.uniform(-7.0, 7.0), # x --> Llargada piscina
-            self.np_random.uniform(-3.7, 4.5), # y --> Amplada piscina
-            5.0                                # z --> Altura piscina
+            self.np_random.uniform(-7.0, 7.0), # x --> Pool length
+            self.np_random.uniform(-3.7, 4.5), # y --> Pool width
+            5.0                                # z --> Pool height
         ]
-        ball_rot = [0.0, 0.0, 0.0]  # Rotació del robot "Ball"
+        ball_rot = [0.0, 0.0, 0.0]  # Rotation of the "Ball" robot
 
-        girona_pos = [0.0, 0.0, 0.5] # Posició del "girona500"
+        girona_pos = [0.0, 0.0, 0.5] # Position of "girona500"
         girona_rot = [
-            self.np_random.uniform(-np.pi, np.pi) , # rotació en x del girona500
-            0.0, # rotació en y del girona500
-            0.0  # rotació en z del girona500
+            self.np_random.uniform(-np.pi, np.pi) , # girona500 rotation around x
+            0.0, # girona500 rotation around y
+            0.0  # girona500 rotation around z
         ]
 
         return [
@@ -82,12 +90,12 @@ class G500Env(EnvStonefishRL):
 
     def reset(self, seed=None, options=None):
         """ 
-        Reinicia la simulació, recoloca aleatoriament el robot ("Ball") i retorna una observació
+        Reset the simulation, randomly reposition the "Ball" robot, and return an observation.
         """
-        # Construeix la comanda RESET
+        # Build the RESET command
         command = self.build_reset_command()
 
-        # Envia la comanda A Stonefish
+        # Send the command to Stonefish
         obs = self.send_command("RESET:" + json.dumps(command) + ";")
 
         super().reset(obs, seed=seed, options=options)
@@ -100,7 +108,9 @@ class G500Env(EnvStonefishRL):
 
     
     def create_command(self, values):
-        
+        """
+        Create a command dictionary from action values.
+        """
         action = np.array(values).flatten()
         
         control_type = {
@@ -117,7 +127,7 @@ class G500Env(EnvStonefishRL):
             "girona500/FingerServo2": "VELOCITY"
         }
 
-        # Crea el diccionari de commands
+        # Create the command dictionary
         command = {}
         for name, val in zip(control_type.keys(), action):
             command[name] = {control_type[name]: float(val)}
@@ -127,13 +137,13 @@ class G500Env(EnvStonefishRL):
 
     def step(self, action):
         """
-        Fa una step a la simulació aplicant les comandes escrites, també obté una observació
+        Makes one step: applying commands to the simulator and obtaining an observation.
         """
         self.step_counter += 1
 
         command = self.create_command(action)
 
-        # Converteix la comanda en string (per poder enviar a Stonefish) i avança la simulacio 'steps' vegades
+        # Convert the command to a string (to send to Stonefish) and advance the simulation 'steps' times
         cmd_string = self.build_command(command)
         steps = int(self.dt / self.sim_stonefishRL)
         super().step(cmd_string, steps)
@@ -145,11 +155,11 @@ class G500Env(EnvStonefishRL):
         truncated = False
 
         if(reward == 0):
-            # El gripper ja està suficientment aprop (>0.5) del robot ("Ball")
+            # The gripper is already close enough (< 0.5 m) to the "Ball" robot
             terminated = True
 
         elif (self.step_counter * self.dt >= self.search_time):
-            # Superat el temps que tenia per buscar l'altre robot ("Ball") 
+            # Exceeded the allowed time to search for the "Ball" robot
             truncated = True
 
         info = {}
@@ -161,55 +171,55 @@ class G500Env(EnvStonefishRL):
 
     def safe_vector(self, key, subkey, n=3):
         """
-        Retorna les 3 primeres posicions del vector, sino retorna [nan]*n
+        Return the first 'n' elements of the vector, otherwise return [nan] * n.
         """
         return self.state.get(key, {}).get(subkey, [np.nan] * n)[:n]
 
 
     def get_observation(self):
         """
-        Retorna observació amb:
-        - Posició de la bola (3)
+        Returns an observation with:
+        - Ball position (3)
         
-        - Posició del girona500 (3)
-        - Rotació del girona500 (3)
+        - girona500 position (3)
+        - girona500 rotation (3)
         
-        - Velocitat lineal del girona500 (3)
-        - Velocitat angular del girona500 (3)
+        - girona500 linear velocity (3)
+        - girona500 angular velocity (3)
         
-        - Posició del gripper del girona500 (3)
-        - Rotació del gripper del girona500 (3)
+        - girona500 gripper position (3)
+        - girona500 gripper rotation (3)
         
-        - Angles de les joints del girona500 (n)
+        - Joint angles of the girona500 arm (n)
         
-        - Ultima acció (n+m) 
+        - Last action (n+m) 
         """
 
         obs = []
         
-        # Posició de la bola
+        # Ball position
         obs += self.safe_vector("Ball", "position", 3)
 
-        # Posicio i rotació del girona500
+        # girona500 position and rotation
         obs += self.safe_vector("girona500", "position", 3)
         obs += self.safe_vector("girona500", "rotation", 3)
 
-        # Velocitat lineal i angular del girona500
+        # girona500 linear and angular velocity
         obs += self.safe_vector("girona500/dynamics", "linear_velocity", 3)
         obs += self.safe_vector("girona500/dynamics", "angular_velocity", 3)
     
-        # Posicio i rotació del braç del girona500
+        # girona500 gripper position and rotation
         obs += self.safe_vector("girona500/OdoGripper", "position", 3)
         obs += self.safe_vector("girona500/OdoGripper", "rotation", 3)
         
-        # Angles de les joints del braç
+        # Arm joint angles
         for name, value in self.state.items():
             if ("Servo" in name or "Finger" in name) and "angle" in value:
                 angle = value["angle"]
                 if angle is not None:
                     obs.append(self.normalize_angle(angle))
 
-        # Última acció aplicada
+        # Last applied action
         obs += self.last_action_aplied.tolist()
                 
         return np.array(obs, dtype=np.float32)
@@ -217,7 +227,7 @@ class G500Env(EnvStonefishRL):
 
     def dist_gripper_object(self):
         """
-        Calcula la distància entre el gripper i l'altre robot ("Ball")
+        Calculate the distance between the gripper and the other robot ("Ball").
         """
         vec_xyz_ball = self.state['Ball']['position']
         vec_xyz_gripper = self.state['girona500/OdoGripper']['position']
@@ -228,7 +238,7 @@ class G500Env(EnvStonefishRL):
 
     def calculate_reward(self):
         """
-        Calcula el reward segons la distància entre el gripper i l'altre robot ("Ball")
+        Calculate the reward based on the distance between the gripper and the other robot ("Ball").
         """
         reward = 0
         actual_dist = self.dist_gripper_object()

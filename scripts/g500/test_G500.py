@@ -19,7 +19,7 @@ total_reward = 0
 
 while not (terminated or truncated):
 
-    action = env.action_space.sample() # Vector amb valors aleatoris pels 11 floats dels actuadors
+    action = env.action_space.sample()  # Random vector for the 11 actuator floats
     obs, reward, terminated, truncated, info = env.step(action)   
     
     print("\n Step: ", env.step_counter)
@@ -28,11 +28,11 @@ while not (terminated or truncated):
     print("Terminated:", terminated, "| Truncated:", truncated)
 
     if terminated:
-        print("OBJECTIU ASSOLIT :) Resetejant entorn...\n")
+        print("GOAL ACHIEVED :) Resetting environment...\n")
         observation, info = env.reset()
         
     if truncated:
-        print("TRUNCATED: S'han superat els 30 segs :(")
+        print("TRUNCATED: 30 seconds exceeded :(")
         observation, info = env.reset()
 
     terminated = False
