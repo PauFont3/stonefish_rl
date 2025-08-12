@@ -6,19 +6,21 @@ import gymnasium as gym
 class EnvStonefishRL(gym.Env):
 
     def __init__(self, ip="tcp://localhost:5555"):
-        super().__init__() # Crida al constructor de la classe gym (gymnasium)
+        super().__init__() # Call Gym's (Gymnasium) base constructor
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
         self.socket.connect(ip)
 
-        self.state = {} # Diccionari amb tota la informació 
+        self.state = {} # Dictionary with all the info
 
 
     # El que es mostra a la terminal de Python ja es amb el canvi a 'NaN' fet
     def _replace_null_with_nan(self, data):
         """
-        Canvia els 'null' del diccionari per 'NaN'
-        Pot evitar problemes amb Python pq 'None' no es tractat com un numero, però 'NaN' si
+        Replace JSON 'null' values in the dictionary with 'NaN'.
+        This can avoid issues in Python because 'None' is not treated as a number,
+        while 'NaN' yes.
+        Note: What you see printed in the Python terminal already has 'NaN' applied.
         """
 
         if data is None:
@@ -27,21 +29,22 @@ class EnvStonefishRL(gym.Env):
         if isinstance(data, dict):
             return {k: self._replace_null_with_nan(v) for k, v in data.items()}
         
-        # Si no es dict ni list ni None, retorna tal cual la dada amb el tipus q era
+        # If it's not a dict, list, or None, it returns the value (preserving its type)
         return data
     
 
     def _process_and_update_state(self, msg):
         """
-        Rep les observacions (el string de JSON del simulador), les processa i 
-        actualitza l'estat a l'ultima observació (la més recent) que s'ha fet del mapa
+
+        Recieves the observations (the simulator's JSON string), processes it,
+        and updates the internal state to the latest observation.
         """
         obs_dict = json.loads(msg)
         
-        # Converteix els 'None' a 'NaN'
+        # Convert 'None' to 'NaN'
         obs_dict = self._replace_null_with_nan(obs_dict)
 
-        # Actualitza l'estat intern
+        # Update internal state
         self.state = obs_dict
 
         return self.state
@@ -49,7 +52,7 @@ class EnvStonefishRL(gym.Env):
 
     def build_command(self, command_dict):
         """
-        Construeix un string CMD a partir d'un diccionari de commands
+        Build a CMD string from a command dictionary.
         """
         parts = []
         for actuator, params in command_dict.items():
@@ -60,12 +63,12 @@ class EnvStonefishRL(gym.Env):
     
     def send_command(self, message):
         """
-        Envia una comanda al simulador StonefishRL
+        Send a command to the StonefishRL simulator and wait for a response.
         """
         #print(f"[CONN] Enviant comanda: {message}")
         self.socket.send_string(message)
 
-        # Espera rebre una resposta del simulador
+        # Wait to receive a response from the simulator
         response = self.socket.recv_string()
         #print(f"[CONN] Resposta rebuda de StonefishRL: {response}")
         return response
@@ -75,10 +78,14 @@ class EnvStonefishRL(gym.Env):
         _ = self.send_command("EXIT")
         self.socket.close()
         self.context.term()
-        print("[INFO] SIMULACIÓ ACABADA.")  
+        print("[INFO] SIMULATION ENDED.")  
 
 
     def reset(self, obs, seed=None, options=None):
+        """
+        Update internal state from the provided observation and calls Gym's reset.
+        Note: This reset signature expects that 'obs' is the simulator's JSON string.
+        """
         self._process_and_update_state(obs)
 
         super().reset(seed=seed)
@@ -88,21 +95,21 @@ class EnvStonefishRL(gym.Env):
 
     def step(self, message, steps):
         """
-        Envia les accions al simulador i rep les observacions
+        Send actions to the simulator and recieve observations.
         """
         for i in range(steps):
             msg = self.send_command(message)
 
-        # Processar l'ultim estat rebut
+        # Process the last state received
         self._process_and_update_state(msg)
         self.print_full_state()
         
     
     def print_full_state(self):
         """
-        Mostra tots els valors que hi ha al diccionari
+        Print all values contained in the dictionary.
         """
-        print("[DEBUG] Dins de 'self.state' hi ha :")
+        print("[DEBUG] The dictionary 'self.state' contains:")
         for obj_name, attributes in self.state.items():
             print(f" - {obj_name}")
             for attr, value in attributes.items():

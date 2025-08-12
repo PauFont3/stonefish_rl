@@ -4,38 +4,36 @@ import time
 
 def kill_existing_stonefish_processes():
     try:
-        # Busca qualsevol proces que s'estigui executant utilitzant StonefishRLTest
+        # # Find any process currently running StonefishRLTest
         output = subprocess.check_output(["pgrep", "-f", "stonefish_rl/build/StonefishRLTest"], text=True)
         pids = output.strip().split("\n")
         for pid in pids:
-            # Per cada PID trobat, mostra un missatge i mata el proces
+            # For each PID found, kills the process
+            #print(f"[INFO] Killing old process from StonefishRLTest with PID {pid}")
             subprocess.run(["kill", "-9", pid])
-        # Esperar per si no ha acabat d'eliminar tot els rescursos
+        # Wait in case not all resources have been released
         time.sleep(1.0) 
     except subprocess.CalledProcessError:
-        pass  # No hi ha processos antics a matar
+        pass  # There are no prvious processes to kill
 
 def launch_stonefish_simulator(scene_relative_path):
     """
-    Executa el simulador de Stonefish amb la escena concreta.
-    scene_relative_path: ruta relativa desde l'arrel del projecte.
+    Launch the Stonefish simulator with the specified scene.
+    scene_relative_path: path relative to the project root.
     """
 
-    # Assefurar-se que no hi ha processos antics de Stonefish executant-se
+    # Make sure that there are no old Stonefish processes running
     kill_existing_stonefish_processes()
 
-    # Ruta al directorio base del proyecto
+    # Path to the project root directory
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 
-    # Ruta al ejecutable de Stonefish
+    # Path to the Stonefish executable
     stonefish_exe = os.path.join(project_root, "build", "StonefishRLTest")
 
-    # Ruta completa a la escena
+    # Full path to the scene
     scene_path = os.path.join(project_root, scene_relative_path)
-    resources_path = "/" + os.path.join(project_root, "Resources")
-    os.environ["RESOURCES_DIR"] = resources_path
-    print(f"[INFO] RESOURCES_DIR set to: {resources_path}")
-    
-    # Executa l'escena
+
+    # Run the scene
     print(f"[INFO] Executing Stonefish with the scene: {scene_path}")
     stonefish_proc = subprocess.Popen([stonefish_exe, scene_path])
