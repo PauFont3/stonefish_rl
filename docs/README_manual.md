@@ -218,3 +218,32 @@ You can find an example in the `G500Env.py` with the functions `build_reset_comm
 - Collects all the sensor and actuaor readings into a new observation whcih is a string. This observation string is sent back to the Python side.
   
 - Finally, the Python environment receives the observation string (via `socket.recv_string()` in the method `send_command`) and processes it (using `_process_and_update_state` to update the `env.state` dictionary).
+
+---
+
+---
+
+# StonefishRL — Add a New Robot
+
+## 1) Include the robot library (if needed)
+- In `StonefishRL.cpp` or `StonefishRL.h`, add the appropriate header.
+```cpp
+#include <Stonefish/core/Robot.h>
+```
+
+## 2) Define the robot in the XML  
+- Add the new robot to your scene file (`.scn`).
+- Set an initial position and rotation.
+- Give a unique name to the robot.
+> [!NOTE]
+> The **exact** names in the scene will be used in C++ and Python.
+
+## 3) Add the actuators and sensors (optional)
+- Inside the robot block, declare the actuators you will control (e.g. Thruster1, Servo1, ...).
+- Add at least one sensor for the observations (e.g. Odometry, IMU, encoders, ...).
+
+## 4) Verify the robot has been detcted
+- Temporally enable the method `PrintAll()` to confirm the robot. actuators and sensors are listed.
+
+## 5) Reset pose form Python (Optional)  
+You can reposition the robot with a `RESET:` command.
