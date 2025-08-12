@@ -43,11 +43,7 @@ int learning(void* data) {
     std::string nextStepSim;
 
     while(nextStepSim != "EXIT")
-    {
-        //std::cout << "\n\n---------------------------------------------------------------------------- \n";
-        //std::cout << "-----------------------  STARTING STEP: " << contador << "  ------------------------------" << std::endl; 
-        //std::cout << "---------------------------------------------------------------------------- \n";
-        
+    {   
         nextStepSim = myManager->RecieveInstructions(simApp);
         
         float time0 = simManager->getSimulationTime();

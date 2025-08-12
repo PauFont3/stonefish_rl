@@ -1,22 +1,19 @@
 #include "StonefishRL.h"
 #include <iostream>
 #include <sstream>
-#include <thread>
-#include <chrono>
 #include <string>
 #include <vector>
-#include <sstream> // Per poder construir el JSON de les observacions
+#include <sstream> // To build the JSON for observations
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
 
 #include <zmq.hpp> 
 
-// Includes per SENSORS
+// Sensor includes
 #include <Stonefish/sensors/Sensor.h>
 #include <Stonefish/sensors/Sample.h>
-#include <Stonefish/sensors/ScalarSensor.h> // Pel getLastSample()
-#include <Stonefish/sensors/VisionSensor.h>
+#include <Stonefish/sensors/ScalarSensor.h> // For getLastSample()
 #include <Stonefish/sensors/scalar/IMU.h>
 #include <Stonefish/sensors/scalar/RotaryEncoder.h>
 #include <Stonefish/sensors/vision/Camera.h>
@@ -24,14 +21,13 @@
 #include "sensors/scalar/LinkSensor.h"
 #include "sensors/scalar/JointSensor.h"
 
-// Includes per ACTUADORS
+// Actuator includes
 #include <Stonefish/actuators/Servo.h>
 #include <Stonefish/actuators/Motor.h>
 #include <Stonefish/actuators/Actuator.h>
 #include <Stonefish/actuators/Thruster.h>
 #include <Stonefish/actuators/LinkActuator.h>
 #include <Stonefish/actuators/JointActuator.h>
-#include <Stonefish/actuators/Light.h>
 
 #include <Stonefish/core/Robot.h>
 
@@ -39,17 +35,17 @@
 
 #include <Stonefish/core/SimulationManager.h>
 #include <Stonefish/core/SimulationApp.h>
-#include <Stonefish/core/ScenarioParser.h> // Per carregar l'arxiu XML
+#include <Stonefish/core/ScenarioParser.h> // To load the XML file
 #include <Stonefish/StonefishCommon.h>
 
 #include <SDL2/SDL.h>
 
-// Constructor de la classe StonefishRL
+// Constructor of the StonefishRL class
 StonefishRL::StonefishRL(const std::string &path, double frequency)
     : sf::SimulationManager(frequency),
       scenePath(path),
-      context(1),                            // Inicialitza el context de ZeroMQ amb 1 thread
-      socket(context, zmq::socket_type::rep) // Crea 1 socket REP
+      context(1),                            // Initialize ZeroMQ context with 1 thread
+      socket(context, zmq::socket_type::rep) // Create a REP socket
 {
     InitializeZMQ();
 }
@@ -59,17 +55,17 @@ std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
 {
     zmq::message_t request;
 
-    // Esperar a rebre el missatge --> Rebrà: "RESET:nom_robot;"
+    // Wait to receive a message --> It will receive: "RESET:robot_name;"
     auto result = socket.recv(request, zmq::recv_flags::none);
 
-    // Convertir el missatge (que esta en un buffer) a string i mostrar-lo
+    // Convert the message (buffer) to string and show it
     std::string cmd = request.to_string();
-    //std::cout << "[ZMQ] He rebut: (" << result.value() << " bytes) en la comanda: " << cmd << std::endl;
+    // std::cout << "[ZMQ] Received: (" << result.value() << " bytes) in command: " << cmd << std::endl;
 
-    // Elimina el string del tipus d'instrucció que es vol fer
-    int pos = cmd.find(":");              // Agafa fins al 1r ":" que troba.
-    std::string prefix = cmd.substr(0, pos); // Es queda amb el que ha de fer la comanda
-    cmd = cmd.substr(pos + 1);               // El +1 és per eliminar el ":"
+     // Remove the instruction type prefix
+    int pos = cmd.find(":");                 // Take up to the first ":" found
+    std::string prefix = cmd.substr(0, pos); // Keep what the command must do
+    cmd = cmd.substr(pos + 1);               // +1 to drop the ":"
 
     if (prefix == "RESET")
     {
@@ -83,7 +79,7 @@ std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
     }
     else if (prefix == "EXIT")
     {
-        std::cout << "[ZMQ] He rebut EXIT\n";
+       std::cout << "[ZMQ] Received EXIT\n";
         socket.send(zmq::buffer("EXIT OK"), zmq::send_flags::none);
         return "EXIT";
     }
@@ -103,8 +99,8 @@ std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
 void StonefishRL::SendObservations()
 {
     StateScene scalar_observations = GetStateScene();
-    //ProvaMostrarTot();
-    // Convertir les observacions a string
+    //PrintAll();
+    // Convert observations to string
     std::string obs_str_json = SerializeScene(scalar_observations.observations);
     
     this->socket.send(zmq::buffer(obs_str_json), zmq::send_flags::none);
@@ -113,9 +109,7 @@ void StonefishRL::SendObservations()
 
 void StonefishRL::ApplyCommands(const std::string& str_cmds)
 {
-    // Assigna els nous valors a l'estructura
-    // que tenim als atributs de la classe StonefishRL.
-    
+    // Assign new values to the structure kept as StonefishRL members.
     ParseCommandsAndObservations(str_cmds);
 
     unsigned int id = 0;
@@ -125,7 +119,7 @@ void StonefishRL::ApplyCommands(const std::string& str_cmds)
     {
         std::string actuator_name = actuator_ptr->getName();
 
-        // Només continuem la iteració si hi ha commands per l'actuador que estem mirant
+        // Continue only if there are commands for the current actuator
         if (commands_.count(actuator_name) > 0)
         {
             switch (actuator_ptr->getType())
@@ -140,7 +134,7 @@ void StonefishRL::ApplyCommands(const std::string& str_cmds)
                     break;
                 }
 
-                // Aplica totes les accions que hi ha a la comanda pel SERVO
+                // Apply all actions specified for the SERVO
                 for (const auto &[action, action_value] : commands_[actuator_name])
                 {
                     if (action == "VELOCITY" || action == "TORQUE")
@@ -171,7 +165,7 @@ void StonefishRL::ApplyCommands(const std::string& str_cmds)
                     break;
                 }
 
-                // Aplica totes les accions que hi ha a la comanda pel THRUSTER
+                // Apply all actions specified for the THRUSTER
                 for (const auto &[action, action_value] : commands_[actuator_name])
                 {
                     if (action == "VELOCITY" || action == "TORQUE")
@@ -183,36 +177,6 @@ void StonefishRL::ApplyCommands(const std::string& str_cmds)
                         std::cout << "[WARNING] Unknown command '" << action << "' for servo '" << actuator_name << "'\n";
                     }
                 }
-                break;
-            }
-
-
-            std::cout << "CASI PERO NOPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE" << std::endl;
-            // LIGHT
-            case sf::ActuatorType::LIGHT:
-            {
-                std::cout << "HE ENTRAT A LIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIGHT" << std::endl;
-                sf::Light *light = dynamic_cast<sf::Light *>(actuator_ptr);
-                if (!light)
-                {
-                    std::cout << "[WARNING] Not converted " << actuator_name << " to LIGHT.\n";
-                    break;
-                }
-                
-                for (const auto &[action, action_value] : commands_[actuator_name])
-                {
-                    if(action == "LIGHT_ON"){
-                        std::cout << "YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEY" << std::endl;
-                        light->Switch(true);
-                    }
-                    else if(action == "LIGHT_OFF") {
-                        std::cout << "YEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEY" << std::endl;
-                        light->Switch(false);
-                    }  
-                    else 
-                        std::cout << "[WARNING] Unknown command '" << action << "' for light '" << actuator_name << "'\n";
-                }
-                
                 break;
             }
 
@@ -241,31 +205,31 @@ void StonefishRL::BuildScenario()
 
     sf::Sensor *sensor_ptr;
     unsigned int sensor_id = 0;
+    bool item_found = false;
 
     while ((sensor_ptr = getSensor(sensor_id++)) != nullptr)
     {
-        sensors_[sensor_ptr->getName()] = sensor_ptr;
+      item_found = true;
     }
-
-    if (sensors_.empty()) std::cout << "[WARN] No sensors registered in this scenario!" << std::endl;
+    if (!item_found) std::cout << "[WARN] No sensors registered in this scenario!" << std::endl;
 
     sf::Actuator *actuator_ptr;
     unsigned int actuator_id = 0;
+    item_found = false;
     while ((actuator_ptr = getActuator(actuator_id++)) != nullptr)
     {
-        actuators_[actuator_ptr->getName()] = actuator_ptr;
+        item_found = true;
     }
-
-    if (actuators_.empty()) std::cout << "[WARN] No actuators registered in this scenario!" << std::endl;
+    if (!item_found) std::cout << "[WARN] No actuators registered in this scenario!" << std::endl;
 
     sf::Robot *robot_ptr;
     unsigned int robot_id = 0;
+    item_found = false;
     while ((robot_ptr = getRobot(robot_id++)) != nullptr)
     {
-        robots_[robot_ptr->getName()] = robot_ptr;
+        item_found = true;
     }
-
-    if (robots_.empty()) std::cout << "[WARN] No robots registered in this scenario!" << std::endl;
+    if (!item_found) std::cout << "[WARN] No robots registered in this scenario!" << std::endl;
 
     std::cout << "[INFO] Scenario loaded succesfully.\n";
 }
@@ -308,12 +272,12 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
     {
         std::string sensor_name = sensor_ptr->getName();
 
-        if (ObjImportantForObs(sensor_name)) // POTSER S'HAURIA DE TREURE?
+        if (ObjImportantForObs(sensor_name))
         {
             sf::ScalarSensor *sensor = dynamic_cast<sf::ScalarSensor *>(sensor_ptr);
             if (!sensor) continue;
             
-            InfoObject obs; // El poso aqui pq cada cop que es troba un objecte nou, no pugui tenir cap possible dada de l'anterior
+            InfoObject obs; // I declare it here so each new object cannot carry over previous data
             FillWithNanInfoObject(obs);
             
             obs.name = sensor_name;
@@ -321,8 +285,8 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
             // ENCODING SENSOR
             if(sensor->getScalarSensorType() == sf::ScalarSensorType::ENCODER)
             {
-                obs.angle = sensor->getLastSample().getValue(0); // Angle del sensor
-                obs.angular_velocity[2] = sensor->getLastSample().getValue(1); // Posem l'unic valor que dona a l'eix Z i després al python ho tractarem
+                obs.angle = sensor->getLastSample().getValue(0);   // Sensor angle
+                obs.angular_velocity[2] = sensor->getLastSample().getValue(1); // Put the single value on Z axis, Python will handle it later
 
                 state.observations.push_back(obs);
             }
@@ -341,11 +305,13 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
                 obs.rotation[0] = sensor->getLastSample().getValue(6); // Rotation X
                 obs.rotation[1] = sensor->getLastSample().getValue(7); // Rotation Y
                 obs.rotation[2] = sensor->getLastSample().getValue(8); // Rotation Z
-                float rot_w = sensor->getLastSample().getValue(9); // No es guarda al struct pq no m'interessa ara mateix, pero sino seria fer el mateix procediment 
-                                                                   // que al posar un nou sensor, pero amb la diferencia que el sensor ja està creat, només seria afegir
-                                                                   // aquest paràmetre que falta al sensor (Odomentry Sensor) en aquest cas.
-
+                float rot_w = sensor->getLastSample().getValue(9); // Not stored in the struct because it's not needed now,
+                                                                   // otherwise, you must follow the same procedure as adding
+                                                                   // a new sensor, but since the sensor already exists, we 
+                                                                   // would just add this missing parameter to the (Odometry) sensor
+                                                                   
                 obs.angular_velocity[0] = sensor->getLastSample().getValue(10); // Angular velocity X
+                                                                   
                 obs.angular_velocity[1] = sensor->getLastSample().getValue(11); // Angular velocity Y
                 obs.angular_velocity[2] = sensor->getLastSample().getValue(12); // Angular velocity Z
                 
@@ -438,20 +404,6 @@ StonefishRL::StateScene StonefishRL::GetStateScene()
 
                 state.observations.push_back(obs);
             }
-
-            // LIGHT ACTUATOR
-            else if (actuator_ptr->getType() == sf::ActuatorType::LIGHT)
-            {
-                sf::Light* light_ptr = dynamic_cast<sf::Light*>(actuator_ptr);
-                
-                light_ptr->Switch(true);
-
-                // No hi ha cap dada que ens interessi de moment
-                obs.angle = 0; // Per evitar que es quedi amb NaN
-                obs.angular_velocity[2] = 0; // Per evitar que es quedi amb NaN
-
-                state.observations.push_back(obs);
-            }
         }
     }
     current_state_ = state;
@@ -463,8 +415,8 @@ void StonefishRL::InitializeZMQ()
 {
     try
     {
-        socket.bind("tcp://*:5555"); // Escolta al port "5555"
-        std::cout << "[ZMQ] Servidor REP actiu al port 5555\n";
+        socket.bind("tcp://*:5555"); // Listens on port 5555
+         std::cout << "[ZMQ] REP server active on port 5555\n";
     }
     catch (const zmq::error_t &e)
     {
@@ -479,25 +431,25 @@ std::vector<StonefishRL::InfoObject> StonefishRL::ParseResetCommand(const std::s
 
     int pos = 0;
 
-    // Mentres hi hagi '{..}'
+    // While there is a '{..}'
     while((pos = str_command.find("{", pos)) != std::string::npos) {
         
-        // Busca la marca de fi '}'
+        // Find the end marker '}'
         int end = str_command.find("}", pos); 
 
         if(end == std::string::npos) break;
         
-        // Agafa i guarda en un string el contingut que hi ha dins de '{..}'
+         // Take and store in a string the content inside '{..}'
         std::string object_str = str_command.substr(pos, end - pos + 1);
     
         InfoObject obj;
-        // Posar aquest valors per defecte, pq no ens serveixen per res. 
-        // Si es crea un altre struct pels valors del reset es podria eliminar, 
-        // però he preferit reutilizar el struct que ja tenia pq té totes les dades que interessen.  
+        // Set default values, because we will not use these values now.
+        // If a different struct is created for reset values this could be removed,
+        // but I think it's simpler to reuse the existing struct that already contains the needed data.
         obj.angle = 0;
 
         // ---- NAME ----
-        // Buscar i agafar el 'name'
+        // Find and grab 'name'
         size_t name_pos = object_str.find("\"name\"");
         if (name_pos != std::string::npos) {
             // Busca les ' ".." ' que contenen el valor del nom 
@@ -513,7 +465,7 @@ std::vector<StonefishRL::InfoObject> StonefishRL::ParseResetCommand(const std::s
             size_t bracket2 = object_str.find("]", bracket1);
             std::string list = object_str.substr(bracket1 + 1, bracket2 - bracket1 - 1);
 
-            // Divideix la llista separant per comes i convierteix cada valor a float
+            // Split by commas and convert each value to float
             std::stringstream ss(list);
             std::string val;
             while (std::getline(ss, val, ',')) {
@@ -549,8 +501,7 @@ std::vector<StonefishRL::InfoObject> StonefishRL::ParseResetCommand(const std::s
 
 void StonefishRL::ParseCommandsAndObservations(const std::string& str)
 {
-    // Cal?
-    // Netejar els antics valors, per si n'hi hagues de nous.
+    // Clean the previous values in case new ones arrive
     commands_.clear();
     relevant_obs_names_.clear();
 
@@ -561,14 +512,14 @@ void StonefishRL::ParseCommandsAndObservations(const std::string& str)
         return;
     }
 
-    std::string cmd_str = str.substr(0, obs_pos); // Agafa tot el que hi ha abans de "OBS:"
-    std::string obs_str = str.substr(obs_pos + 4); // Pot ser que estigui buit
+    std::string cmd_str = str.substr(0, obs_pos);  // Everything before "OBS:"
+    std::string obs_str = str.substr(obs_pos + 4); // May be empty
 
-    // --- Processar les comandes (CMD:) ---
+    // --- Process commands (CMD:) ---
     std::stringstream ss(cmd_str);
     std::string token;
     
-    // Dividir per ";"
+    // Split by ";"
     while (std::getline(ss, token, ';'))
     {
         if (token.empty()) continue;
@@ -585,7 +536,7 @@ void StonefishRL::ParseCommandsAndObservations(const std::string& str)
                 commands_[actuator_name][action] = value;
             }
             catch (...)
-            { // Agafa qualsevol excepció sense importar de quin tipus es
+            { // Catch any exception type
                 std::cerr << "[ERROR] Invalid value for " << actuator_name << ":" << action << " --> '" << token << "'\n";
             }
         }
@@ -594,8 +545,8 @@ void StonefishRL::ParseCommandsAndObservations(const std::string& str)
         }
     }
 
-    // --- Processar les observacions (OBS:) ---
-    // Si obs_str és buit, mostrarà totes les observacions
+    // --- Process observations (OBS:) ---
+    // If obs_str is empty, show all observations
     if (!obs_str.empty()) {
         std::istringstream obsStream(obs_str);
         std::string obj_name;
@@ -626,17 +577,18 @@ void StonefishRL::SetRobotPosition(const std::vector<InfoObject>& obj)
         
         while ((robot_ptr = getRobot(id++)) != nullptr && !robot_found)
         {
-            // Aquest if només esta fent el reset de la posició al robot que es passa pel command del RESET
+            // Only reset the position of the robot whose name was written in the RESET command
             if(robot_ptr->getName() == robot_name)
             {     
                 robot_found = true;
             
                 sf::Transform tf;
                 sf::Vector3 new_position(obj[i].position[0], obj[i].position[1], obj[i].position[2]);
-                tf.setOrigin(new_position); // Mou el robot a la posició indicada
+                tf.setOrigin(new_position); // Move the robot to the indicated position
+                
                 
                 sf::Quaternion rotation(obj[i].rotation[0], obj[i].rotation[1], obj[i].rotation[2]);
-                tf.setRotation(rotation); // Rota el robot 
+                tf.setRotation(rotation); // Rotate the robot 
                 
                 robot_ptr->Respawn(this, tf);
             }
@@ -660,68 +612,12 @@ void StonefishRL::ExitRequest() {
 }
 
 
-// Agafa el nom dels commands dels actuadors que s'han enviat desdel Python, 
-// perque després al fer el recorregut dels actuadors al while(el que itera per tots els actuadors)
-// apliqui 'acció nomes als que s'han demanat al command
+// Keep only the names from actuator commands sent from Python,
+// because when iterating over all the actuators and sensors
+// we apply only for those requested in the command filter.
 bool StonefishRL::ObjImportantForObs(const std::string& objName) const {
     return relevant_obs_names_.empty() || relevant_obs_names_.count(objName) > 0;
 }
-
-/*
-void StonefishRL::MostrarValors() {
-    std::cout << "[INFO] MOSTRAR ELS VALORS RECOLLITS:\n";
-    
-    for( int i = 0; i < current_state_.observations.size(); i++)
-    {    
-        std::cout << "  --------  " << std::endl;
-        std::cout << "[INFO][" << current_state_.observations[i].name << "] \n";
-        
-        if(current_state_.observations[i].position.size() >= 3) 
-        {
-            std::cout << "[INFO] Position: X[" << current_state_.observations[i].position[0] << "],"
-                      << " Y[" << current_state_.observations[i].position[1] << "],"
-                      << " Z[" << current_state_.observations[i].position[2] << "]" << std::endl;
-        }       
-
-        std::cout << "[INFO] Angular Velocity: X[" << current_state_.observations[i].angular_velocity[0] << "],"
-                  << " Y[" << current_state_.observations[i].angular_velocity[1]  << "],"
-                  << " Z[" << current_state_.observations[i].angular_velocity[2]  << "]" << std::endl;
-
-        std::cout << "[INFO] Linear Velocity: X[" << current_state_.observations[i].linear_velocity[0] << "],"
-                  << " Y[" << current_state_.observations[i].linear_velocity[1] << "],"
-                  << " Z[" << current_state_.observations[i].linear_velocity[2] << "]" << std::endl;
-       
-                  std::cout << "[INFO] Angle: " << current_state_.observations[i].angle << "." << std::endl;
-
-        std::cout << "  --------  " << std::endl;
-    }
-
-    std::cout << std::endl;
-
-    std::cout << "[INFO] MOSTRAR ELS COMMANDS APLICATS:\n";
-    for(const auto& [actuator_name, actions] : commands_)
-    {
-        for (const auto& [action_name, value] : actions) 
-        {
-            std::cout << "  --------  " << std::endl;
-            std::cout << "[INFO] Actuator name: " << actuator_name << std::endl;
-            std::cout << "[INFO] Action: " << action_name << std::endl;
-            std::cout << "[INFO] Value: " << value << std::endl;
-            std::cout << "  --------  " << std::endl;
-        }
-    }
-
-    std::cout << std::endl;
-
-    for (const auto& name : relevant_obs_names_) 
-    {
-        if(sensors_.count(name) > 0 || actuators_.count(name) > 0) std::cout << "[INFO] " << name << std::endl;
-        else if(actuators_.count(name) > 0) std::cout << "[INFO] " << name << " is an actuator in the scenario." << std::endl;
-        else if(robots_.count(name) > 0) std::cout << "[INFO] " << name << " is a robot in the scenario." << std::endl;
-        else std::cout << "[WARN] " << name << " is not a sensor, actuator or robot in the scenario." << std::endl;
-    }
-}
-*/
 
 
 std::string StonefishRL::InfoObjectToJson(const InfoObject& obj)
@@ -815,7 +711,7 @@ void StonefishRL::FillWithNanInfoObject(InfoObject& obj)
 }
 
 
-// Pq el python ho pugui interpretar com un valor buit
+// Because Python can interpret it as an empty value
 std::string StonefishRL::SafeFloat(float val) 
 {
     if (std::isnan(val)) return "null";
@@ -823,8 +719,9 @@ std::string StonefishRL::SafeFloat(float val)
 }
 
 
-// No serveix per res, només mostra valors per pantalla
-void StonefishRL::ProvaMostrarTot()
+
+// No functional purpose, just prints values to console
+void StonefishRL::PrintAll()
 {
     sf::Sensor *sensor_ptr;
     sf::Robot *robot_ptr;
@@ -884,4 +781,3 @@ void StonefishRL::ProvaMostrarTot()
         }
     }
 }
-
