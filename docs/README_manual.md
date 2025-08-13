@@ -263,7 +263,7 @@ You can find an example in the `G500Env.py` with the functions `build_reset_comm
 
 # StonefishRL - Create a new RL Environment
 
-> *Inspirated on the structure of the `G500Env.py`. You dont´t have to follow this strictly, tret it as a practical starting point, especiaally for searching tasks where you will randomize positions and orientations.*
+> *Inspirated on the structure of the `G500Env.py`. You don´t have to follow this strictly, treat it as a practical starting point, especiaally for searching tasks where you will randomize positions and orientations.*
 
 ## 1) Create the scene file 
 - Design the Stonefish scene and include robots, obstacles and any other object the agent will interact with.
