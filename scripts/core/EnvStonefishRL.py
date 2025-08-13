@@ -20,7 +20,7 @@ class EnvStonefishRL(gym.Env):
         Replace JSON 'null' values in the dictionary with 'NaN'.
         This can avoid issues in Python because 'None' is not treated as a number,
         while 'NaN' yes.
-        Note: What you see printed in the Python terminal already has 'NaN' applied.
+        Note: What you see printed in the Python terminal it has 'NaN' already applied.
         """
 
         if data is None:
@@ -44,7 +44,7 @@ class EnvStonefishRL(gym.Env):
         # Convert 'None' to 'NaN'
         obs_dict = self._replace_null_with_nan(obs_dict)
 
-        # Update internal state
+        # Update state
         self.state = obs_dict
 
         return self.state
@@ -83,8 +83,8 @@ class EnvStonefishRL(gym.Env):
 
     def reset(self, obs, seed=None, options=None):
         """
-        Update internal state from the provided observation and calls Gym's reset.
-        Note: This reset signature expects that 'obs' is the simulator's JSON string.
+        Updates the state from the provided observation and calls Gym's reset.
+        Note: This reset function expects that 'obs' is the simulator's JSON string.
         """
         self._process_and_update_state(obs)
 
@@ -95,7 +95,7 @@ class EnvStonefishRL(gym.Env):
 
     def step(self, message, steps):
         """
-        Send actions to the simulator and recieve observations.
+        Send actions to the simulator and recieves observations from C++.
         """
         for i in range(steps):
             msg = self.send_command(message)
@@ -107,7 +107,7 @@ class EnvStonefishRL(gym.Env):
     
     def print_full_state(self):
         """
-        Print all values contained in the dictionary.
+        Print all the values contained in the dictionary.
         """
         print("[DEBUG] The dictionary 'self.state' contains:")
         for obj_name, attributes in self.state.items():

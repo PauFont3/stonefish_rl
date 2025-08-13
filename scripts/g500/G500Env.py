@@ -90,7 +90,7 @@ class G500Env(EnvStonefishRL):
 
     def reset(self, seed=None, options=None):
         """ 
-        Reset the simulation, randomly reposition the "Ball" robot, and return an observation.
+        Resets the simulation, randomly reposition the "Ball" robot, and returns an observation.
         """
         # Build the RESET command
         command = self.build_reset_command()
