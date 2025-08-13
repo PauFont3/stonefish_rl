@@ -2,7 +2,7 @@
 # StonefishRL — Add a New Scalar Sensor (not Vision)
 
 ## 1) Include the sensor library (if needed)
-- In `StonefishRL.cpp` or `StonefishRL.h`, add the appropriate header for the sensor type.
+- Add the appropriate header for the sensor type in `StonefishRL.cpp` or `StonefishRL.h`.
 - Example:
 ```cpp
 #include <Stonefish/sensors/scalar/IMU.h>
@@ -12,7 +12,7 @@
 - Add the new sensor to your scene file (`.scn`).
   
 ## 3) Extend `InfoObject` (if needed)
-- Add the new sensor fields in `InfoObject` in `StonefishRL.h`:
+- Add the new sensor fields you want to export in `InfoObject` in `StonefishRL.h`:
 ```cpp
 struct InfoObject {
     // …existing fields
@@ -20,16 +20,13 @@ struct InfoObject {
 };
 ```
 
-## 4) Verify Stonefish detects the sensor (StonefishRL.cpp)
-- Temporally enable `PrintAll()` to confirm the sensor appears and which data channels it exposes.  
-> [!TIP]
-> If the actuator doesn´t appear, start by checking the **name** given in the XML and if the type exists in StonefishRL.
-
+## 4) Verify that Stonefish detects the sensor  
+- Temporally enable `PrintAll()` in `StonefishRL.cpp` to confirm the sensor is created and which data channels it exposes.  
 > [!WARNING]
-> Keeping `PrintAll()` commented during normal runs can print faster than Python and flood the console.
+> Keeping `PrintAll()` commented during normal runs will print faster than Python and flood the console.
   
-## 5) Add it to the observation vector
-- In `StonefishRL.cpp` in `GetStateScene()` , follow the same pattern used by existing sensors to gather the values you want to export to Python.  
+## 5) Add the sensor to the observation vector
+- In `StonefishRL.cpp` in `GetStateScene()`, follow the same pattern used by existing sensors to collect the values you want to export to Python.  
 - **Important:** remember to call `push_back` so the observations are appended as `InfoObject` entries.
 
 ## 6) Send the data to Python
@@ -37,16 +34,18 @@ struct InfoObject {
 - In `FillWithNanInfoObject(...)`, initialise the new sensor fields you plan to collect with `NaN`.
 
 ## 7) Confirm Python recieves the values
-- In `EnvStonefishRL.py`, uncomment the line `self.print_full_state()` inside `step(self, message, steps)` to print on screen the values coming from the newly added sensor.  
+- In `EnvStonefishRL.py`,you can tempoarily uncomment the line `self.print_full_state()` inside `step(self, message, steps)` to print on screen the values coming from the new added sensor.  
 
 ---
-
----
+<br>
+<br>
+<br>
+<br>
 
 # StonefishRL — Add a New Actuator
 
 ## 1) Include the actuator library (if needed)
-- In `StonefishRL.cpp` or `StonefishRL.h`, add the appropriate header for the actuator type.  
+- Add the appropriate header for the actuator type in `StonefishRL.cpp` or `StonefishRL.h`.  
 - Example:
 ```cpp
 #include <Stonefish/actuators/Servo.h>
@@ -56,15 +55,15 @@ struct InfoObject {
 - Add the new actuator to your scene file (`.scn`).
 - Make sure the actuator has a **unique name**.
 
-## 3) Verify Stonefish detects the actuator (StonefishRL.cpp)
-- The function `BuildScenario()` stores all the actuators from the scene in a map `actuators_`.
-- In the function `SendObservations()` you can enable `PrintAll()` to see if the new actuator appears.
+## 3) Verify that Stonefish detects the actuator  
+- The function `BuildScenario()` in `StonefishRL.cpp` stores all the actuators from the scene in a map `actuators_`.
+- In the function `SendObservations()` you can enable temporaly `PrintAll()` and run the simulator to see if the new actuator appears.
 > [!NOTE]
 > Use `PrintAll()` only for debugging, in normal runs it can spam so many C++ messages to the console.
 
 ## 4) Enable control of the new actuator in C++ 
-- In `StonefishRL.cpp` in the function `ApplyCommands(...)`, there is a `switch` that handles different actuator types.  
-- Define how to apply commands to the actuator. Choose the control modes (e.g. `VELOCITY`, `TORQUE`, `POSITION`, or any other new custom keyword).  
+- In `StonefishRL.cpp` in the function `ApplyCommands(...)`, there's a `switch` that handles different actuator types.  
+- Define how to apply commands to the actuator. Choose the control modes (e.g. `VELOCITY`, `TORQUE`, `POSITION`, or any other unused keyword).  
 - If the actuator it's not already covered add a new `case`.  
 Here's a template:
 ```cpp
@@ -89,7 +88,7 @@ case sf::ActuatorType::CUSTOM:
 ```
 
 ## 5) Add actuator data to the observations (optional)  
-- In `StonefishRL.cpp` in `GetStateScene()`, in the actuators loop, add your branch and fill the field with the actuators data (if not already included) in `InfoObject`.
+- In `StonefishRL.cpp` the function `GetStateScene()` has a loop for actuators, add your branch there and fill the field with the actuators data in `InfoObject` (if not already included).
 ```cpp
 else if(actuator_ptr->getType() == sf::ActuatorType::MY_ACTUATOR) {
     MyActuator* act = dynamic_cast<MyActuator*>(actuator_ptr);
@@ -104,7 +103,7 @@ else if(actuator_ptr->getType() == sf::ActuatorType::MY_ACTUATOR) {
 - In your `Env` you need to specify how actions correspond to the new actuator’s commands. This is done by mapping the actuator’s name to the command key you defined in C++. 
  - Implement or update the function `create_command(...)` to include the new actuator.
  - Make sure the key (`name`) matches the actuator’s name in the scene (including any robot prefix).
- - Example:
+Example:
 ```python
   def create_command(self, values):
     action = np.array(values).flatten()
@@ -119,30 +118,33 @@ else if(actuator_ptr->getType() == sf::ActuatorType::MY_ACTUATOR) {
     return command
 ```
 > The `values` parameter (can be a list or array) contains the values for each actuator's command in the same order as the map keys in `control_type`.  
-> The base class (EnvStonefishRL) will convert this to the proper string format when you call the function`build_command()`.  
+> The base class (`EnvStonefishRL.py`) will convert this to the needed string format by calling the function `build_command()`.  
 
 ## 7) Extend the action space in Gym
-- Whenever a controllable actuators added to the environment, you must update the Gym environment’s action space to include it.
+- Whenever a new controllable actuators is added to the environment, you must update the Gym environment’s action space to include it.
 - In the environment's `__init__`:
-  - Increase the number of total actions (e.g. `n_total_actions = previous_actions + n_new_actions`).
+  - Increase the number of the action space (e.g. `n_total_actions = previous_actions + n_new_actions`).
   - Define the range of valid values for that actuator (only if needed).
   - Also consider if the observation space needs to be expanded.
 
 ---
 
----
+<br>
+<br>
+<br>
+<br>
 
 # StonefishRL — Create Commands to Control Actuators
 
-Commands are messages sent from the Python environment to the Stonefish simulator (C++) to control actuators, reset the scene, or terminate the simulation.
+Commands are messages sent from the Python environment to the Stonefish simulator (C++) to control actuators, reset the scene, or leave from the simulation.
 
 ## 1 Command message format (Pyhton to C++)
 
 ```
 CMD:ActuatorName:ACTION_KEY:VALUE;OBS:
 ```
-- `CMD:` - Indicates the beginning of a command (this tells the simulator we are sending actuator control commands).
-- `ActuatorName:` - The name of the actuator as defined in the Stonefish scene (including any prefix like the robot name, e.g. `girona500/Servo1`).
+- `CMD:` - Indicates the beginning of a command (tells the simulator we are sending actuator control commands).
+- `ActuatorName:` - The name of the actuator as defined in the Stonefish scene `.scn` (including any prefix like the robot name, e.g. `girona500/Servo1`).
 - `ACTION_KEY:` - The keyword for the type of action or control mode (e.g. `POSITION`, `VELOCITY`, `TORQUE`, ...).
 - `VALUE;` - Number representing the command value.
 > `;` – Acts as a separator between multiple commands. You can send several actuator commands in one message by separating them with `;`.
@@ -156,14 +158,14 @@ CMD:Acrobot/Servo2:TORQUE:1.5;OBS:
 CMD:MyRobot/Thruster1:VELOCITY:0.8;MyRobot/Servo1:TORQUE:10;OBS:
 ```
 
-## 2) Building command string in Python
+## 2) Building the command string in Python
 
-You don't have to build these strings manually. In the Gym environment class, after defining the method `create_command()` (returns a dictionary of commands), the base class `EnvStonefishRL` has a method `build_command(command_dict)` to construct the string. 
+You don't have to build these strings manually. In the Gym environment class, after defining the method `create_command()` (returns a dictionary of commands), the base class `EnvStonefishRL.py` has a method `build_command(command_dict)` to construct the string. 
 
 - The create_command method:
   - **Keys** are actuator names (matching those in the simulator).
   - **Values** are dictionaries mapping an action keyword to it's value.
-  For example:
+  Example:
   ```python
   {
     "MyRobot/Thruster1": {"VELOCITY": 0.8},  
@@ -171,14 +173,14 @@ You don't have to build these strings manually. In the Gym environment class, af
   }
   ```
   
-- The base method `build_command` will iterate through this and produce:
+- The base method `build_command(...)` will iterate through this map and produce:
 ```
 CMD:MyRobot/Thruster1:VELOCITY:0.8;MyRobot/Servo1:TORQUE:10.0;OBS:  
 ```
 
-- To **add a new command type**: : ensure you use a unique keyword in the dictionary (as the `ACTION_KEY`). Then confirm the C++ `ApplyCommands` function knows how to handle that keyword for the given actuator. If it’s an existing actuator but new mode, you may need to extend the C++ handling for that actuator to interpret the new key.
+- To **add a new command type**: ensure you use a unique keyword in the dictionary (as the `ACTION_KEY`). Then confirm the C++ function `ApplyCommands` knows how to handle that keyword for the given actuator. If it’s an existing actuator but new mode, you may need to extend the C++ handling for that actuator to interpret the new key.
 
-## 3) Special commands: RESET and EXIT
+## 3) Special commands: `RESET` and `EXIT`
 
 In addition to the `CMD:`, there two other commands:
 - `RESET:` - This command resets the environment with new specified positions/orientations for robots.
@@ -221,7 +223,10 @@ You can find an example in the `G500Env.py` with the functions `build_reset_comm
 
 ---
 
----
+<br>
+<br>
+<br>
+<br>
 
 # StonefishRL — Add a New Robot
 
@@ -236,104 +241,74 @@ You can find an example in the `G500Env.py` with the functions `build_reset_comm
 - Set an initial position and rotation.
 - Give a unique name to the robot.
 > [!NOTE]
-> The **exact** names in the scene will be used in C++ and Python.
+> The **exact** robot names used in the XML scene will also be used in C++ and Python.
 
 ## 3) Add the actuators and sensors (optional)
-- Inside the robot block, declare the actuators you will control (e.g. Thruster1, Servo1, ...).
+- Inside the XML robot block, declare the actuators you will control (e.g. Thruster1, Servo1, ...).
 - Add at least one sensor for the observations (e.g. Odometry, IMU, encoders, ...).
 
-## 4) Verify the robot has been detcted
-- Temporally enable the method `PrintAll()` to confirm the robot. actuators and sensors are listed.
+## 4) Verify the robot has been detected
+- Temporally enable the method `PrintAll()` to confirm the robot, actuators and sensors are listed.
+- Run the simulator to check it.
 
-## 5) Reset pose form Python (Optional)  
-You can repositionate the robot with a `RESET:` command.
+## 5) Use the Reset command (from Pyhton) to postionate the robot (Optional)  
+- You can repositionate the robot with a `RESET:` command.
 
 ---
 
----
+<br>
+<br>
+<br>
+<br>
 
-# StonefishRL - Create a new RL ENvironment from scratch
+# StonefishRL - Create a new RL Environment
 
-Inspirated on the G500Env.
+> *Inspirated on the structure of the `G500Env.py`. You dont´t have to follow this strictly, tret it as a practical starting point, especiaally for searching tasks where you will randomize positions and orientations.*
 
 ## 1) Create the scene file 
-- Design the Stonefish scene that will contian the new robot and any other object with whom will interactuate with.
+- Design the Stonefish scene and include robots, obstacles and any other object the agent will interact with.
 
-## 2) Create the Environment Pyhton class
-- Inside the `scripts` directory, create the new directory for your environement (e.g. `scripts/my_new_environment`).
+## 2) Create the Pyhton Environment class
+- Inside the `scripts` directory, create a new subdirectory for your environment (e.g. `scripts/my_new_environment/`).
 
-- Inside, create a Python file (e.g. `MyNewEnv.py`).
+- Create the Python file (e.g. `MyNewEnv.py`).
 
-- Define a new classe that inherits from `EnvStonefishRL.py`.
+- Define a new classe that inherits from the base class `EnvStonefishRL.py`.
 
   ```python
+  # scripts/my_new_environment/MyNewEnv.py
   from core.EnvStonefishRL import EnvStonefishRL
   from gymnasium import spaces
   import numpy as np
   
   class MyNewEnv(EnvStonefishRL):
     def __init__(self, ...):
-      super().__init__(...)
+      super().__init__(...) # Creates the connection with Stonefish in port 5555
       ...
-  
   ```
 
 ## 3) Implement the Gymnasium methods
-- Define the action space. For example:
+- Define the action space.
+Example:
   ```python
-    # 2 actuators with values from -1 to 1
+    # 'n' actuators with values from -1 to 1
     self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(n,), dtype=np.float32)
   ```
 
-- Define the observation space. Which data is gone see the agent.
+- Define the observation space (Which data will the agent see).
 
-- Define a method `get_observations(self)` which can read the `self.state` dictionary (contains all the data recieved from C++) and create the observations vector.
+- Define a method `get_observations()` which can read the `self.state` dictionary (contains all the data recieved from C++) and create the observations vector.
 
-- Define a method `step(self, action)`:
+- Define a method `step(action)`:
   - **Translate the action**: Convert the agents `action` in a command for the simulator. (e.g. `create_command()` and `build_command()`.
-  - **Execute the command**: Call `self.send_command(...)` from `EnvStonefishRL.py`.
-  - **Calculate the reward**: Define a method that rewards or punish the agent for it's behavior.
-
-- Define a method `reset(self, ...)` to 
-# StonefishRL - Create a new RL ENvironment from scratch
-
-Inspirated on the G500Env.
-
-## 1) Create the scene file 
-- Design the Stonefish scene that will contian the new robot and any other object with whom will interactuate with.
-
-## 2) Create the Environment Pyhton class
-- Inside the `scripts` directory, create the new directory for your environement (e.g. `scripts/my_new_environment`).
-
-- Inside it, create `MyNewEnv.py` and define a class that inherits from `EnvStonefishRL`.
-
-  ```python
-  # scripts/my_new_env/MyNewEnv.py
-  from core.EnvStonefishRL import EnvStonefishRL
-  from gymnasium import spaces
-  import numpy as np
-  
-  class MyNewEnv(EnvStonefishRL):
-    def __init__(self, ...):
-      super().__init__(...)
-      ...
-  
-  ```
-
-## 3) Implement the Gymnasium methods
-- Define the action space. For example:
-  ```python
-    # 2 actuators with values from -1 to 1
-    self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(n,), dtype=np.float32)
-  ```
-
-- Define the observation space. Which data is gone see the agent.
-
-- Define a method `get_observations(self)` which can read the `self.state` dictionary (contains all the data recieved from C++) and create the observations vector.
-
-- Define a method `step(self, action)`:
-  - **Translate the action**: Convert the agents `action` in a command for the simulator. (e.g. `create_command()` and `build_command()`.
-  - **Execute the command**: Call `self.send_command(...)` from `EnvStonefishRL.py`.
-  - **Calculate the reward**: Define a method that rewards or punish the agent for it's behavior.
-
-- Define a method `reset(self, ...)` to 
+  - **Execute the command**: Call the method `self.send_command(...)` from `EnvStonefishRL.py`.
+  - **Obtain the resultant observation**: Call your method `get_observations()`.
+  - **Calculate the reward**: Define a method that rewards or punishes the agent for the decisions(actions) taken.
+  - **Check for the episode end**: Create the episode finalization conditions. It should contain `terminated`(the objective has been reached succesfully) and `truncated`(the objective could not been reached).
+    
+- Define a method `reset(...)` to restart the environment and start a new episode:
+  - **Reubicate the robots** to his initial or desired conditions (positions and orientations). They can be fixed or random.
+  - Call the method `reset()` from the base class `EnvStonefishRL.py` to **update** the `self.state` dictionary.
+  - Initialize the environment variables (e.g. `self.step_counter`, ...).
+  - Call the method `get_observations()` to return the agents initial state.
+ 
