@@ -32,25 +32,25 @@
 		<look name="seabed" rgb="0.7 0.7 0.5" roughness="0.9"/>
 		<look name="black" gray="0.05" roughness="0.2"/>
 		<look name="yellow" rgb="1.0 0.9 0.0" roughness="0.3"/>
-		<look name="tbar_back" gray="1.0" roughness="0.4" metalness="0.5" texture="/home/user/stonefish_rl/Resources/g500/data/girona500/tbar_back_tex.png"/>
-		<look name="tbar_front" gray="1.0" roughness="0.4" metalness="0.5" texture="/home/user/stonefish_rl/Resources/g500/data/girona500/tbar_front_tex.png"/>
-		<look name="lower_hull" gray="1.0" roughness="0.3" texture="/home/user/stonefish_rl/Resources/g500/data/girona500/lower_hull_tex.png"/>
+		<look name="tbar_back" gray="1.0" roughness="0.4" metalness="0.5" texture="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/tbar_back_tex.png"/>
+		<look name="tbar_front" gray="1.0" roughness="0.4" metalness="0.5" texture="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/tbar_front_tex.png"/>
+		<look name="lower_hull" gray="1.0" roughness="0.3" texture="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/lower_hull_tex.png"/>
 		<look name="gray" gray="0.5" roughness="0.4" metalness="0.5"/>
 		<look name="orange" rgb="1.0 0.4 0.0" roughness="0.2"/>
 		<look name="white" rgb="1.0 1.0 1.0" roughness="0.2"/>
-		<look name="propeller" gray="1.0" roughness="0.3" texture="/home/user/stonefish_rl/Resources/g500/data/girona500/propeller_tex.png"/>
+		<look name="propeller" gray="1.0" roughness="0.3" texture="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/propeller_tex.png"/>
 		<look name="duct" gray="0.1" roughness="0.4" metalness="0.5"/>
-		<look name="cirs_tank" gray="1.0" roughness="0.3" texture="/home/user/stonefish_rl/Resources/g500/data/pool/CIRSPool.png"/>
+		<look name="cirs_tank" gray="1.0" roughness="0.3" texture="/home/ubuntu/stonefish_rl/Resources/g500/data/pool/CIRSPool.png"/>
 	</looks>
 
 	<!-- Pool -->
 	<static name="Tank" type="model">
 		<physical>
-			<mesh filename="/home/user/stonefish_rl/Resources/g500/data/pool/cirs_pool_2025.obj" scale="1.0"/>
+			<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/pool/cirs_pool_2025.obj" scale="1.0"/>
 			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 		</physical>
 		<visual>
-			<mesh filename="/home/user/stonefish_rl/Resources/g500/data/pool/cirs_pool_2025.obj" scale="1.0"/>
+			<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/pool/cirs_pool_2025.obj" scale="1.0"/>
 			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 		</visual>
 		<material name="Neutral"/>
@@ -58,7 +58,7 @@
 		<world_transform rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 	</static>
 
-	<include file="/home/user/stonefish_rl/Resources/g500/scenarios/vehicles/girona500_eca5emicro_gripper.scn">
+	<include file="/home/ubuntu/stonefish_rl/Resources/g500/scenarios/vehicles/girona500_eca5emicro_gripper.scn">
 		<arg name="robot_name" value="girona500"/>
 		<arg name="start_yaw" value="0.0"/>
 		<arg name="start_position" value="0.0 0.0 0.0"/>

@@ -5,12 +5,12 @@
 		<base_link name="Vehicle" type="compound" physics="submerged">
 			<external_part name="HullBottom" type="model" physics="submerged" buoyant="false">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/hull_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/hull_phy.obj" scale="1.0"/>
 					<thickness value="0.003"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/lower_hull.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/lower_hull.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Fiberglass"/>
@@ -20,12 +20,12 @@
 
 			<external_part name="HullPort" type="model" physics="submerged" buoyant="false">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/hull_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/hull_phy.obj" scale="1.0"/>
 					<thickness value="0.003"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/hull.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/hull.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Fiberglass"/>
@@ -35,12 +35,12 @@
 
 			<external_part name="HullStarboard" type="model" physics="submerged" buoyant="false">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/hull_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/hull_phy.obj" scale="1.0"/>
 					<thickness value="0.003"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/hull.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/hull.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Fiberglass"/>
@@ -50,12 +50,12 @@
 
 			<external_part name="TBarStern" type="model" physics="submerged" buoyant="false">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/tbar_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/tbar_phy.obj" scale="1.0"/>
 					<thickness value="0.003"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/tbar_back.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/tbar_back.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Aluminium"/>
@@ -65,12 +65,12 @@
 
 			<external_part name="TBarBow" type="model" physics="submerged" buoyant="false">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/tbar_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/tbar_phy.obj" scale="1.0"/>
 					<thickness value="0.003"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/tbar_front.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/tbar_front.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Aluminium"/>
@@ -80,11 +80,11 @@
 
 			<external_part name="DuctSway" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/duct_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/duct_phy.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/duct.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/duct.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Neutral"/>
@@ -94,11 +94,11 @@
 
 			<external_part name="DuctSurgePort" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/duct_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/duct_phy.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/duct.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/duct.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Neutral"/>
@@ -108,11 +108,11 @@
 
 			<external_part name="DuctSurgeStarboard" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/duct_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/duct_phy.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/duct.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/duct.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Neutral"/>
@@ -122,11 +122,11 @@
 
 			<external_part name="DuctHeaveStern" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/duct_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/duct_phy.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/duct.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/duct.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Neutral"/>
@@ -136,11 +136,11 @@
 
 			<external_part name="DuctHeaveBow" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/duct_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/duct_phy.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/duct.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/duct.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Neutral"/>
@@ -150,11 +150,11 @@
 
 			<external_part name="Antenna" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/antenna_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/antenna_phy.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/antenna.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/antenna.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Fiberglass"/>
@@ -192,11 +192,11 @@
 
 		<link name="ECABaseLink" type="model" physics="submerged">
 			<physical>
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/base_link_phy.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/base_link_phy.obj" scale="1.0"/>
 				<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			</physical>
 			<visual>
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/base_link.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/base_link.obj" scale="1.0"/>
 				<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			</visual>
 			<material name="Neutral"/>
@@ -205,11 +205,11 @@
 
 		<link name="ECALink1" type="model" physics="submerged">
 			<physical>
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/link1_phy.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/link1_phy.obj" scale="1.0"/>
 				<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			</physical>
 			<visual>
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/link1.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/link1.obj" scale="1.0"/>
 				<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			</visual>
 			<material name="Neutral"/>
@@ -218,11 +218,11 @@
 
 		<link name="ECALink2" type="model" physics="submerged">
 			<physical>
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/link2_phy.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/link2_phy.obj" scale="1.0"/>
 				<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			</physical>
 			<visual>
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/link2.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/link2.obj" scale="1.0"/>
 				<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			</visual>
 			<material name="Neutral"/>
@@ -231,11 +231,11 @@
 
 		<link name="ECALink3" type="model" physics="submerged">
 			<physical>
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/link3_phy.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/link3_phy.obj" scale="1.0"/>
 				<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			</physical>
 			<visual>
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/link3.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/link3.obj" scale="1.0"/>
 				<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			</visual>
 			<material name="Neutral"/>
@@ -244,7 +244,7 @@
 
 		<link name="ECALink4" type="model" physics="submerged">
 			<physical>
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/link4_ft_gripper.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/link4_ft_gripper.obj" scale="1.0"/>
 				<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			</physical>
 			<material name="Neutral"/>
@@ -253,7 +253,7 @@
 
 		<link name="ECAEndEffector" type="model" physics="submerged">
 			<physical>
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_base.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_base.obj" scale="1.0"/>
 				<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 			</physical>
 			<material name="Neutral"/>
@@ -263,11 +263,11 @@
 		<link name="ECAFinger1" type="compound" physics="submerged">
 			<external_part name="Finger11A" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a_phy.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Polyamide"/>
@@ -277,7 +277,7 @@
 
 			<external_part name="Finger11B" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_b.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_b.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<material name="Polyamide"/>
@@ -287,11 +287,11 @@
 
 			<external_part name="Finger12A" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a_phy.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Polyamide"/>
@@ -301,7 +301,7 @@
 
 			<external_part name="Finger12B" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_b.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_b.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<material name="Polyamide"/>
@@ -313,11 +313,11 @@
 		<link name="ECAFinger2" type="compound" physics="submerged">
 			<external_part name="Finger21A" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a_phy.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Polyamide"/>
@@ -327,7 +327,7 @@
 
 			<external_part name="Finger21B" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_b.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_b.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<material name="Polyamide"/>
@@ -337,11 +337,11 @@
 
 			<external_part name="Finger22A" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a_phy.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a_phy.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<visual>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_a.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</visual>
 				<material name="Polyamide"/>
@@ -351,7 +351,7 @@
 
 			<external_part name="Finger22B" type="model" physics="submerged">
 				<physical>
-					<mesh filename="/home/user/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_b.obj" scale="1.0"/>
+					<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/eca5emicro/gripper_finger_b.obj" scale="1.0"/>
 					<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 				</physical>
 				<material name="Polyamide"/>
@@ -497,7 +497,7 @@
 			<specs thrust_coeff="0.48" torque_coeff="0.05" max_rpm="1000.0" inverted="true" 
 					max_setpoint="${1000.0/60.0*2.0*pi}" inverted_setpoint="true" normalized_setpoint="true"/> 
 			<propeller diameter="0.18" right="true">
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/propeller.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/propeller.obj" scale="1.0"/>
 				<material name="Neutral"/>
 				<look name="propeller"/>
 			</propeller>
@@ -520,7 +520,7 @@
 			<specs thrust_coeff="0.48" torque_coeff="0.05" max_rpm="1000.0" inverted="true" 
 					max_setpoint="${1000.0/60.0*2.0*pi}" inverted_setpoint="true" normalized_setpoint="true"/> 
 			<propeller diameter="0.18" right="true">
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/propeller.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/propeller.obj" scale="1.0"/>
 				<material name="Neutral"/>
 				<look name="propeller"/>
 			</propeller>
@@ -543,7 +543,7 @@
 			<specs thrust_coeff="0.48" torque_coeff="0.05" max_rpm="1000.0" inverted="true" 
 					max_setpoint="${1000.0/60.0*2.0*pi}" inverted_setpoint="true" normalized_setpoint="true"/> 
 			<propeller diameter="0.18" right="true">
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/propeller.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/propeller.obj" scale="1.0"/>
 				<material name="Neutral"/>
 				<look name="propeller"/>
 			</propeller>
@@ -566,7 +566,7 @@
 			<specs thrust_coeff="0.48" torque_coeff="0.05" max_rpm="1000.0" inverted="true" 
 					max_setpoint="${1000.0/60.0*2.0*pi}" inverted_setpoint="true" normalized_setpoint="true"/> 
 			<propeller diameter="0.18" right="true">
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/propeller.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/propeller.obj" scale="1.0"/>
 				<material name="Neutral"/>
 				<look name="propeller"/>
 			</propeller>
@@ -589,7 +589,7 @@
 			<specs thrust_coeff="0.48" torque_coeff="0.05" max_rpm="1000.0" inverted="true" 
 					max_setpoint="${1000.0/60.0*2.0*pi}" inverted_setpoint="true" normalized_setpoint="true"/> 
 			<propeller diameter="0.18" right="true">
-				<mesh filename="/home/user/stonefish_rl/Resources/g500/data/girona500/propeller.obj" scale="1.0"/>
+				<mesh filename="/home/ubuntu/stonefish_rl/Resources/g500/data/girona500/propeller.obj" scale="1.0"/>
 				<material name="Neutral"/>
 				<look name="propeller"/>
 			</propeller>
