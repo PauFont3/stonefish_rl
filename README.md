@@ -6,8 +6,10 @@ This repository contains several simulation environments based on **Stonefish** 
 - [AcrobotEnv](./docs/README_acrobot.md) – Control a two-link pendulum to reach a target height.
 - [G500Env](./docs/README_girona500.md) – Girona500 robot with a gripper to approach a target object (Ball)
 - [G500TestEnv](./docs/README_tests.md) – Testing environment for sensors and actuators
+
+## Developer Guide:  
 - [Installation](./docs/README_installation.md) – Setup Stonefish, build the C++ server, create the Python env and run scenes.
-- [Manual](./docs/README_manual.md) – Developer guide: commands (CMD/RESET/EXIT), adding sensors/actuators, creating robots, create an env structure.
+- [Manual](./docs/README_manual.md) – Commands (CMD/RESET/EXIT), adding sensors/actuators, creating robots, create an env structure.
 
 ## Technologies
 - **Simulator**: [Stonefish](https://github.com/patrykcieslak/stonefish)
