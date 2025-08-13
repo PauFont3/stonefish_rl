@@ -62,7 +62,7 @@ std::string StonefishRL::RecieveInstructions(sf::SimulationApp& simApp)
     std::string cmd = request.to_string();
     // std::cout << "[ZMQ] Received: (" << result.value() << " bytes) in command: " << cmd << std::endl;
 
-     // Remove the instruction type prefix
+    // Remove the instruction type prefix
     int pos = cmd.find(":");                 // Take up to the first ":" found
     std::string prefix = cmd.substr(0, pos); // Keep what the command must do
     cmd = cmd.substr(pos + 1);               // +1 to drop the ":"
