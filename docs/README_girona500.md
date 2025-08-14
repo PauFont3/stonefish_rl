@@ -32,7 +32,7 @@ Train a PPO agent to control the Girona500 using Stable-Baselines3. The best mod
 python scripts/g500/G500_training_ppo.py
 ```
 
-**B. Evaluate a Trained Agent**
+**B. Evaluate a Trained Agent**  
 Load the `logs/best_model.zip` and evañuates its performance.
 If the gripper reaches a position within **<= 0.5m** of the ball, the episode is considered successful and `terminated = True`.
 ```bash 
