@@ -50,7 +50,7 @@ python scripts/acrobot/test_acrobot.py
 
 4. The simulator applies the torque, advances the simulation for several steps (`dt`) and reads the sensors data.
 
-5. These sensor data is serialised to JSON and sent back to Python.
+5. These sensor data is serialized to JSON and sent back to Python.
 
 6. Python processes the JSON, updates the environment state, computes the reward, and checks whether the episode should end (`terminated` or `truncated`).
 
