@@ -13,12 +13,12 @@ source env_rl/bin/activate
   
 Run the test:
 ```bash
-python scripts/tests_sensors_actuadors/test.py
+python scripts/tests_sensors_actuators/test.py
 ```
 
 This will:
-1. Automatically launch the Stonefish simulator with the test scene (`g500_basic.scn`).  
-   > The test reuses the RL `g500_basic.scn` scene and was adapted to add and test sensors/actuators on an already working setup.
+1. Automatically launch the Stonefish simulator with the test scene (`girona500_basic.scn`).  
+   > The test reuses the RL `girona500_basic.scn` scene and was adapted to add and test sensors/actuators on an already working setup.
 2. Instantiate the `G500TestEnv` environment.
 3. Call `reset()` to place the `girona500` robot and the `"Ball"` object at random initial positions and rotations.
 4. Enter a loop that sends random actions and calls `step()` continuously.
