@@ -20,7 +20,7 @@ Before you start, make sure you have the following installed:
 ## Run the environment
 The Python scripts automatically launch the Stonefish simulator with the appropriate scene. Just activate your Python environment and run the script you want.
 
-**Activate the virtual environment**
+**Activate the virtual environment**  
 From the project root:
 ```bash
 source env_rl/bin/activate
