@@ -2,22 +2,32 @@
 
 This repository contains several simulation environments based on **Stonefish** and controlled via **Python**.
 
+
 ## Available Environments
 - [AcrobotEnv](./docs/README_acrobot.md) – Control a two-link pendulum to reach a target height.
-- [G500Env](./docs/README_girona500.md) – Girona500 robot with a gripper to approach a target object (Ball)
-- [G500TestEnv](./docs/README_tests.md) – Testing environment for sensors and actuators
+- [G500Env](./docs/README_girona500.md) – Girona500 robot with a gripper to approach a target object (Ball)-
+- [G500TestEnv](./docs/README_tests.md) – Testing environment for sensors and actuators.
+
 
 ## Developer Guide:  
-- [Installation](./docs/README_installation.md) – Setup Stonefish, build the C++ server, create the Python env and run scenes.
+- [Installation](./docs/README_installation.md) – Setup Stonefish, build the C++ server, create the Python environment and run scenes.
 - [Manual](./docs/README_manual.md) – Commands (CMD/RESET/EXIT), adding sensors/actuators, creating robots, create an env structure.
+
 
 ## Technologies
 - **Simulator**: [Stonefish](https://github.com/patrykcieslak/stonefish)
 - **Reinforcement Learning**: Gymnasium + stable-baselines3
-- **Comunication**: ZeroMQ (pyzmq + cppzmq)
+- **Communication**: ZeroMQ (pyzmq + cppzmq)  
+
+
+## Stonefish documentation
+This project is built on the Stonefish simulator. For full details about the simulator itself, installation, scene format, robots, sensors/actuators, rendering, and physics options, see the [official repository](https://github.com/patrykcieslak/stonefish).
+
+> The READMEs in this repository focus on the Python and C++ integration and the RL environments.
+> For simulator-specific topics (scene syntax, available components, configuration, ...), refer to the Stonefish docs.
+
 
 ## Project Structure   
-
 ```
 stonefish_rl/
 ├── include/                         # C++ headers
