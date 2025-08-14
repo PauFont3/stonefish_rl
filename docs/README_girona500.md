@@ -1,13 +1,13 @@
 # G500Env — Reinforcement Learning Environment with the Girona500 Robot
 
 This environment implements a Reinforcement Learning scenario to control the **Girona500** robot and the **ECA5eMicro** manipulator inside a virtual pool using **Gymnasium**.  
-The virtual pool included in the scene matches the dimensions of the real CIRS pool.
+The virtual pool in the scene matches the dimensions of the real CIRS pool.
 
 ---
 
 ## Prerequisites
 Before you start, make sure you have the following installed:
-- **Stonefish Simulator (v1.5.0 or higher)** — installed and working.
+- **Stonefish simulator (v1.5.0 or higher)** — installed and working.
 - **Python 3.10** and `pip`.
 - **Virtual environment** with the project dependencies (`requirements.txt`).
 - **CMake** and a **C++17** compiler.
@@ -18,7 +18,7 @@ Before you start, make sure you have the following installed:
 
 
 ## Run the environment
-The Python scripts automatically launch the Stonefish simulator with the appropriate scene. Just activate your Python environment and run the script you want.
+The Python scripts automatically launch the Stonefish simulator with the appropriate scene. Just activate your Python environment and run the desired script.
 
 **Activate the virtual environment**  
 From the project root:
@@ -34,7 +34,7 @@ python scripts/g500/G500_training_ppo.py
 
 **B. Evaluate a Trained Agent**  
 Load the `logs/best_model.zip` and evañuates its performance.
-If the gripper reaches a position within **<= 0.5m** of the ball, the episode is considered successful and `terminated = True`.
+If the gripper reaches a position within **<= 0.5 m** of the ball, the episode is considered successful and `terminated = True`.
 ```bash 
 python scripts/g500/evaluate_g500.py
 ```
@@ -64,13 +64,13 @@ An observation (`obs`) is a vector of **38** real values:
 - Last action applied (11)
 > The number in between parentheses indicates the length of each vector.
 
-Actions are a vector of **11** real values:
+An action is a vector of **11** real values:
 - 5 thrusters (TORQUE): range `[-10.0, 10.0]`
 - 6 servos (VELOCITY): range `[-1.0, 1.0]`
 > Units are SI, positions and rotations are given in the world frame unless stated otherwise.
 
 ## Episode termination policy
-- `terminated = True`: the gripper is **≤ 0.5 metres** from the ball.
+- `terminated = True`: the gripper is **≤ 0.5 meters** from the ball.
 - `truncated = True`: **30 seconds** have passed (defined by `search_time`) without achieving the goal.
 
 
