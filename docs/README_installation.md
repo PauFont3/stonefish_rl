@@ -3,7 +3,7 @@
 ## Prerequisites
 
 Before you start, make sure the **Stonefish** simulator (version **1.5.0** or higher) is correctly installed and runs without errors.  
-You can find the repository and installation instructions here: [Stonefish](https://github.com/patrykcieslak/stonefish)
+You can find the repository and installation guide here: [Stonefish](https://github.com/patrykcieslak/stonefish)
 
 ---
 
@@ -23,15 +23,15 @@ sudo apt install python3-pip
 # 3. Install git (if not already installed)
 sudo apt install git
 
-# 4. Install CMake (v3.10 or higher) and a C++ 17-compatible compiler (e.g., g++)
+# 4. Install CMake (v3.10 or higher) and a C++ 17 compatible compiler (e.g. g++)
 sudo apt install cmake
 sudo apt install g++
 
-# 5. Install the ZeroMQ library for C++
+# 5. Install the ZeroMQ C library  
 sudo apt install libzmq3-dev
 
 # 6. Install cppzmq (C++ bindings)
-git clone https://github.com/zeromq/cppzmq.git
+git clone "https://github.com/zeromq/cppzmq.git"
 cd cppzmq
 mkdir build
 cd build
@@ -45,13 +45,13 @@ cd ../..
 > ### Note on `cppzmq` and installation
 > `cppzmq` is a *header-only* library, only `.hpp` headers, no binaries to build.  
 > On some systems, `sudo make install` may fail because it attempts to build and install bundled tests/examples.  
-> If this happens, a solution that works is to run `sudo cmake --install .`, which installs only the required headers (and config files) without compiling extras, allowing you to use the library by adding `#include <zmq.hpp>`.
+> If this happens, a solution that works is to run `cmake -DCPPZMQ_BUILD_TESTS=OFF ..` and `sudo cmake --install .`, which installs only the required headers (and config files) without compiling extras, allowing you to use the library by adding `#include <zmq.hpp>`.
 
 ---
 
 ## Project Installation
 
-### 1. Clone and set up the environment
+### 1. Clone and set up the Python environment
 
 ```bash 
 # 1. Clone the repository
@@ -60,7 +60,7 @@ git clone “https://github.com/PauFont3/stonefish_rl.git”
 # 2. Move into the project directory
 cd stonefish_rl
 
-# 3. Create and activate a Python virtual environment
+# 3. Create and activate a virtual environment
 python3.10 -m venv env_rl
 source env_rl/bin/activate 
 
@@ -80,5 +80,5 @@ cmake ..
 make -j$(nproc)
 ```
 
-> `make -j"$(nproc)"` speeds up the compilation by using all available CPU cores.  
-> If you prefer not to use parallel compilation, simply run `make` (single core).
+> `make -j$(nproc)` speeds up the compilation by using all the available CPU cores.  
+> If you prefer not to use parallel compilation, just run `make` (single core).
